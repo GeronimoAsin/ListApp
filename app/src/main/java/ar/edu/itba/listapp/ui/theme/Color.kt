@@ -17,3 +17,4 @@ val DeeperGreen = Color(0xFF8FB896)
 
 // Text color for primary buttons
 val PrimaryOnPrimary = Color(0xFF222222)
+
