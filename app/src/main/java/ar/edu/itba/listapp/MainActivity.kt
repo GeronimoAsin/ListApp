@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ListappTheme {
+            ListappTheme(dynamicColor = false) {
                 ListappApp()
             }
         }
