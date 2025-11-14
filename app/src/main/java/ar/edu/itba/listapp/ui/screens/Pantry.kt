@@ -5,8 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.AddItemDialog
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
 import ar.edu.itba.listapp.ui.composables.SearchBar
@@ -21,7 +23,8 @@ fun PantryScreen(padding: PaddingValues) {
             "🥛" to "Leche"
         )
     }
-    var listTitle by remember { mutableStateOf("Mi Despensa") }
+    val myPantryStr = stringResource(id = R.string.my_pantry)
+    var listTitle by remember(myPantryStr) { mutableStateOf(myPantryStr) }
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
@@ -43,7 +46,7 @@ fun PantryScreen(padding: PaddingValues) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Despensa",
+            text = stringResource(id = R.string.pantry),
             style = MaterialTheme.typography.titleLarge,
             fontSize = 36.sp
         )
@@ -53,7 +56,7 @@ fun PantryScreen(padding: PaddingValues) {
         SearchBar(
             value = searchText,
             onValueChange = { searchText = it },
-            placeholder = "Buscar en Despensa",
+            placeholder = stringResource(id = R.string.search_in_pantry),
             modifier = Modifier.fillMaxWidth()
         )
 

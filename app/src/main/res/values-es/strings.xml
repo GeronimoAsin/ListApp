@@ -1,6 +1,17 @@
 <resources>
     <string name="app_name">Listapp</string>
+    <string name="lists">Listas</string>
+    <string name="products">Productos</string>
+    <string name="pantry">Despensa</string>
+    <string name="profile">Perfil</string>
+    <string name="new_category">Nueva Categoria</string>
+    <string name="search_in_pantry">Buscar en Despensa</string>
+    <string name="search_products">Buscar Productos</string>
+    <string name="new_category_dialog_title">Nueva categoría</string>
+    <string name="name_label">Nombre:</string>
+    <string name="category_name_placeholder">Nombre de la categoría</string>
+    <string name="cancel">Cancelar</string>
+    <string name="add">Agregar</string>
+    <string name="add_category_icon_description">Agregar categoría</string>
+    <string name="my_pantry">Mi Despensa</string>
 </resources>
-
-
-

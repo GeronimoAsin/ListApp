@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Listapp</string>
+    <string name="lists">Lists</string>
+    <string name="products">Products</string>
+    <string name="pantry">Pantry</string>
+    <string name="profile">Profile</string>
+    <string name="new_category">New Category</string>
+    <string name="search_in_pantry">Search in Pantry</string>
+    <string name="search_products">Search Products</string>
+    <string name="new_category_dialog_title">New category</string>
+    <string name="name_label">Name:</string>
+    <string name="category_name_placeholder">Category name</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="add_category_icon_description">Add category</string>
+    <string name="my_pantry">My Pantry</string>
 </resources>

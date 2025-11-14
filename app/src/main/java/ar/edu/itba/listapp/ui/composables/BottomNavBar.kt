@@ -7,6 +7,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import ar.edu.itba.listapp.ui.layouts.AppDestination
 import ar.edu.itba.listapp.ui.theme.DeeperGreen
 
@@ -25,10 +26,10 @@ fun AdaptiveNavBar(
                     icon = {
                         Icon(
                             imageVector = destination.icon,
-                            contentDescription = destination.label
+                            contentDescription = stringResource(destination.label)
                         )
                     },
-                    label = { Text(destination.label) },
+                    label = { Text(stringResource(destination.label)) },
                     selected = destination == currentDestination,
                     onClick = { onDestinationChanged(destination) }
                 )
@@ -47,4 +48,3 @@ fun AdaptiveNavBar(
         content()
     }
 }
-

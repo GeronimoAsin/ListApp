@@ -11,11 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.theme.ListappTheme
@@ -37,8 +39,8 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showDialog = true },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add category") },
-                text = { Text("Nueva Categoria", fontWeight = FontWeight.Bold) },
+                icon = { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_category_icon_description)) },
+                text = { Text(stringResource(R.string.new_category), fontWeight = FontWeight.Bold) },
                 containerColor = Color.White,
                 contentColor = Color.Black,
                 shape = RoundedCornerShape(50)
@@ -57,7 +59,7 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
 
                 // Title
                 Text(
-                    text = "Productos",
+                    text = stringResource(R.string.products),
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 36.sp
                 )
@@ -68,7 +70,7 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                 SearchBar(
                     value = searchText,
                     onValueChange = { searchText = it },
-                    placeholder = "Buscar Productos",
+                    placeholder = stringResource(R.string.search_products),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -121,15 +123,15 @@ fun NewCategoryDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Nueva categoría", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.new_category_dialog_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Nombre:")
+                    Text(stringResource(R.string.name_label))
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = categoryName,
                         onValueChange = { categoryName = it },
-                        placeholder = { Text("Nombre de la categoría") },
+                        placeholder = { Text(stringResource(R.string.category_name_placeholder)) },
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Gray,
@@ -151,7 +153,7 @@ fun NewCategoryDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.cancel))
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
@@ -163,7 +165,7 @@ fun NewCategoryDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Agregar")
+                        Text(stringResource(R.string.add))
                     }
                 }
             }
