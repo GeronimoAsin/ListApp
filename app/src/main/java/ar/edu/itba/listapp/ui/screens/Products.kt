@@ -19,9 +19,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.theme.ListappTheme
-data class ProductCategory(val id: Long, var title: String, val items: List<Pair<String, String>>)
+data class ProductCategory(val id: Long, val title: String, val items: List<Pair<String, String>>)
 
 @Composable
 fun ProductsScreen(scaffoldPadding: PaddingValues) {
@@ -33,6 +34,21 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
     }
     var nextId by remember { mutableStateOf(2L) }
     var showDialog by remember { mutableStateOf(false) }
+
+    val filteredCategories = if (searchText.isBlank()) {
+        categories
+    } else {
+        categories.mapNotNull { category ->
+            val filteredItems = category.items.filter { it.second.contains(searchText, ignoreCase = true) }
+            if (category.title.contains(searchText, ignoreCase = true)) {
+                category
+            } else if (filteredItems.isNotEmpty()) {
+                category.copy(items = filteredItems)
+            } else {
+                null
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.padding(scaffoldPadding),
@@ -77,21 +93,27 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            items(categories, key = { it.id }) { category ->
-                CollapsibleList(
-                    title = category.title,
-                    items = category.items,
-                    onAddItem = { },
-                    onTitleChanged = { newTitle ->
-                        val index = categories.indexOfFirst { it.id == category.id }
-                        if (index != -1) {
-                            categories[index] = categories[index].copy(title = newTitle)
-                        }
-                    },
-                    onDeleteList = { },
-                    onEditItem = { },
-                    onDeleteItem = { }
-                )
+            if (filteredCategories.isEmpty()) {
+                item {
+                    NoItemsMessage()
+                }
+            } else {
+                items(filteredCategories, key = { it.id }) { category ->
+                    CollapsibleList(
+                        title = category.title,
+                        items = category.items,
+                        onAddItem = { },
+                        onTitleChanged = { newTitle ->
+                            val index = categories.indexOfFirst { it.id == category.id }
+                            if (index != -1) {
+                                categories[index] = categories[index].copy(title = newTitle)
+                            }
+                        },
+                        onDeleteList = { },
+                        onEditItem = { },
+                        onDeleteItem = { }
+                    )
+                }
             }
         }
 

@@ -14,4 +14,5 @@
     <string name="add">Agregar</string>
     <string name="add_category_icon_description">Agregar categoría</string>
     <string name="my_pantry">Mi Despensa</string>
+    <string name="no_items">Sin elementos</string>
 </resources>

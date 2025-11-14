@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.AddItemDialog
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 
 @Composable
@@ -37,6 +38,8 @@ fun PantryScreen(padding: PaddingValues) {
         )
     }
 
+    val filteredItems = pantryItems.filter { it.second.contains(searchText, ignoreCase = true) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,20 +65,24 @@ fun PantryScreen(padding: PaddingValues) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        CollapsibleList(
-            title = listTitle,
-            items = pantryItems.filter { it.second.contains(searchText, ignoreCase = true) },
-            onAddItem = { showDialog = true },
-            onTitleChanged = { newListTitle -> listTitle = newListTitle },
-            onDeleteList = {
-                pantryItems.clear()
-            },
-            onEditItem = { item ->
-                // TODO: Implementar la edición de un ítem.
-            },
-            onDeleteItem = { item ->
-                pantryItems.remove(item)
-            }
-        )
+        if (filteredItems.isEmpty()) {
+            NoItemsMessage()
+        } else {
+            CollapsibleList(
+                title = listTitle,
+                items = filteredItems,
+                onAddItem = { showDialog = true },
+                onTitleChanged = { newListTitle -> listTitle = newListTitle },
+                onDeleteList = {
+                    pantryItems.clear()
+                },
+                onEditItem = { item ->
+                    // TODO: Implementar la edición de un ítem.
+                },
+                onDeleteItem = { item ->
+                    pantryItems.remove(item)
+                }
+            )
+        }
     }
 }

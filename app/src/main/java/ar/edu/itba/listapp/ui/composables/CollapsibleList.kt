@@ -18,11 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
 @Composable
@@ -102,20 +104,14 @@ fun CollapsibleList(
                     )
                 }
             }
-            AnimatedVisibility(visible = expanded) {
-                if (items.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                        Text("Sin elementos", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF647060))
-                    }
-                } else {
-                    Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                        items.forEach { item ->
-                            ListItem(
-                                item = item,
-                                onEdit = { onEditItem(item) },
-                                onDelete = { onDeleteItem(item) }
-                            )
-                        }
+            AnimatedVisibility(visible = expanded && items.isNotEmpty()) {
+                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+                    items.forEach { item ->
+                        ListItem(
+                            item = item,
+                            onEdit = { onEditItem(item) },
+                            onDelete = { onDeleteItem(item) }
+                        )
                     }
                 }
             }
