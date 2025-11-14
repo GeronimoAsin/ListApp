@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -16,9 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.NewCategoryForm
 import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.theme.ListappTheme
@@ -118,7 +117,7 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         }
 
         if (showDialog) {
-            NewCategoryDialog(
+            NewCategoryForm(
                 onDismiss = { showDialog = false },
                 onConfirm = { categoryName ->
                     if (categoryName.isNotBlank()) {
@@ -130,71 +129,6 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         }
     }
 }
-
-@Composable
-fun NewCategoryDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var categoryName by remember { mutableStateOf("") }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFEFEFEF)),
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(stringResource(R.string.new_category_dialog_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.name_label))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = categoryName,
-                        onValueChange = { categoryName = it },
-                        placeholder = { Text(stringResource(R.string.category_name_placeholder)) },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Gray,
-                            unfocusedBorderColor = Color.LightGray
-                        )
-                    )
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = { onConfirm(categoryName) },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Black,
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.add))
-                    }
-                }
-            }
-        }
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
