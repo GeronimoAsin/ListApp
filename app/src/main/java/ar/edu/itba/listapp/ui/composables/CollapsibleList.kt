@@ -1,10 +1,20 @@
 package ar.edu.itba.listapp.ui.composables
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -18,15 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollapsibleList(
     title: String,
@@ -107,11 +116,42 @@ fun CollapsibleList(
             AnimatedVisibility(visible = expanded && items.isNotEmpty()) {
                 Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                     items.forEach { item ->
-                        ListItem(
-                            item = item,
-                            onEdit = { onEditItem(item) },
-                            onDelete = { onDeleteItem(item) }
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                if (it == SwipeToDismissBoxValue.EndToStart) {
+                                    onDeleteItem(item)
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
                         )
+                        //caja para eliminar un item de la lista
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = {
+                                val color by animateColorAsState(
+                                    when (dismissState.targetValue) {
+                                        SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.8f)
+                                        else -> Color.Transparent
+                                    }
+                                )
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(color, shape = RoundedCornerShape(14.dp))
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete Icon",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        ) { ListItem(item = item, onEdit = { onEditItem(item) }) }
                     }
                 }
             }
@@ -136,8 +176,10 @@ private fun RoundIconButton(
     }
 }
 
+
+//composable de los items de la lista
 @Composable
-fun ListItem(item: Pair<String, String>, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun ListItem(item: Pair<String, String>, onEdit: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,11 +204,12 @@ fun ListItem(item: Pair<String, String>, onEdit: () -> Unit, onDelete: () -> Uni
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 SoftRoundIconButton(icon = Icons.Default.Edit, onClick = onEdit)
-                SoftRoundIconButton(icon = Icons.Default.Delete, onClick = onDelete)
             }
         }
     }
 }
+
+
 
 @Composable
 private fun SoftRoundIconButton(
