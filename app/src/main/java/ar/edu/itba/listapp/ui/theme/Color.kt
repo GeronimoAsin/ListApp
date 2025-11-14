@@ -11,7 +11,6 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // App colors
-// Light green background (opaque) used for BaseLayout container
 val LightGreen = Color(0xFFE8F4E1)
 val DeeperGreen = Color(0xFF8FB896)
 
