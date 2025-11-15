@@ -16,12 +16,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
+import ar.edu.itba.listapp.ui.composables.AddProductForm
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.ModifyProductForm
 import ar.edu.itba.listapp.ui.composables.NewCategoryForm
 import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.theme.ListappTheme
-data class ProductCategory(val id: Long, val title: String, val items: List<Pair<String, String>>)
+data class ProductCategory(var id: Long, var title: String, var items: List<Pair<String, String>>)
 
 @Composable
 fun ProductsScreen(scaffoldPadding: PaddingValues) {
@@ -32,7 +34,9 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         )
     }
     var nextId by remember { mutableStateOf(2L) }
-    var showDialog by remember { mutableStateOf(false) }
+    var showCategoryDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf<ProductCategory?>(null) }
+    var showModifyDialog by remember { mutableStateOf<Pair<ProductCategory, Pair<String, String>>?>(null) }
 
     val filteredCategories = if (searchText.isBlank()) {
         categories
@@ -49,11 +53,56 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         }
     }
 
+    if (showCategoryDialog) {
+        NewCategoryForm(
+            onDismiss = { showCategoryDialog = false },
+            onConfirm = { categoryName ->
+                if (categoryName.isNotBlank()) {
+                    categories.add(ProductCategory(nextId++, categoryName, emptyList()))
+                }
+                showCategoryDialog = false
+            }
+        )
+    }
+
+    showAddDialog?.let { category ->
+        AddProductForm(
+            onDismiss = { showAddDialog = null },
+            onConfirm = { emoji, name ->
+                val index = categories.indexOfFirst { it.id == category.id }
+                if (index != -1) {
+                    val newItems = categories[index].items.toMutableList().apply { add(emoji to name) }
+                    categories[index] = categories[index].copy(items = newItems)
+                }
+                showAddDialog = null
+            }
+        )
+    }
+
+    showModifyDialog?.let {
+        ModifyProductForm(
+            item = it.second,
+            onDismiss = { showModifyDialog = null },
+            onConfirm = { emoji, name ->
+                val categoryIndex = categories.indexOfFirst { c -> c.id == it.first.id }
+                if (categoryIndex != -1) {
+                    val itemIndex = categories[categoryIndex].items.indexOf(it.second)
+                    if (itemIndex != -1) {
+                        val newItems = categories[categoryIndex].items.toMutableList()
+                        newItems[itemIndex] = emoji to name
+                        categories[categoryIndex] = categories[categoryIndex].copy(items = newItems)
+                    }
+                }
+                showModifyDialog = null
+            }
+        )
+    }
+
     Scaffold(
         modifier = Modifier.padding(scaffoldPadding),
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showDialog = true },
+                onClick = { showCategoryDialog = true },
                 icon = { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_category_icon_description)) },
                 text = { Text(stringResource(R.string.new_category), fontWeight = FontWeight.Bold) },
                 containerColor = Color.White,
@@ -101,31 +150,29 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                     CollapsibleList(
                         title = category.title,
                         items = category.items,
-                        onAddItem = { },
+                        onAddItem = { showAddDialog = category },
                         onTitleChanged = { newTitle ->
                             val index = categories.indexOfFirst { it.id == category.id }
                             if (index != -1) {
                                 categories[index] = categories[index].copy(title = newTitle)
                             }
                         },
-                        onDeleteList = { },
-                        onEditItem = { },
-                        onDeleteItem = { }
+                        onDeleteList = {
+                            categories.removeIf { it.id == category.id }
+                        },
+                        onEditItem = { item ->
+                            showModifyDialog = category to item
+                        },
+                        onDeleteItem = { item ->
+                            val index = categories.indexOfFirst { it.id == category.id }
+                            if (index != -1) {
+                                val newItems = categories[index].items.toMutableList().apply { remove(item) }
+                                categories[index] = categories[index].copy(items = newItems)
+                            }
+                        }
                     )
                 }
             }
-        }
-
-        if (showDialog) {
-            NewCategoryForm(
-                onDismiss = { showDialog = false },
-                onConfirm = { categoryName ->
-                    if (categoryName.isNotBlank()) {
-                        categories.add(ProductCategory(nextId++, categoryName, emptyList()))
-                    }
-                    showDialog = false
-                }
-            )
         }
     }
 }
