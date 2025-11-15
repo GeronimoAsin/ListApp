@@ -41,6 +41,7 @@ enum class AppScreen {
 fun ListappApp() {
     var currentScreen by rememberSaveable { mutableStateOf(AppScreen.LOGIN) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestination.LISTS) }
+    var userEmail by rememberSaveable { mutableStateOf<String?>(null) }
 
     when (currentScreen) {
         AppScreen.LOGIN -> {
@@ -63,7 +64,10 @@ fun ListappApp() {
                 RegisterScreen(
                     padding = padding,
                     onLoginClick = { currentScreen = AppScreen.LOGIN },
-                    onRegisterSuccess = { currentScreen = AppScreen.VERIFICATION }
+                    onRegisterSuccess = { email ->
+                        userEmail = email
+                        currentScreen = AppScreen.VERIFICATION
+                    }
                 )
             }
         }
@@ -83,7 +87,9 @@ fun ListappApp() {
             ) { padding ->
                 VerificationScreen(
                     padding = padding,
-                    onVerified = { currentScreen = AppScreen.MAIN_APP }
+                    onVerified = { currentScreen = AppScreen.LOGIN },
+                    onBackClick = { currentScreen = AppScreen.LOGIN },
+                    userEmail = userEmail
                 )
             }
         }

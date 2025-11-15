@@ -5,6 +5,7 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.data.model.LoginRequest
 import ar.edu.itba.listapp.data.model.RegisterMetadata
 import ar.edu.itba.listapp.data.model.RegisterRequest
+import ar.edu.itba.listapp.data.model.VerifyAccountRequest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,6 +20,16 @@ sealed interface LoginResult {
 sealed interface RegisterResult {
     data class Success(val email: String) : RegisterResult
     data class Error(val message: String) : RegisterResult
+}
+
+sealed interface VerifyAccountResult {
+    data class Success(val email: String) : VerifyAccountResult
+    data class Error(val message: String) : VerifyAccountResult
+}
+
+sealed interface ResendVerificationResult {
+    data object Success : ResendVerificationResult
+    data class Error(val message: String) : ResendVerificationResult
 }
 
 class AuthRepository(
@@ -100,6 +111,58 @@ class AuthRepository(
                 context.getString(R.string.register_error_generic, it)
             } ?: context.getString(R.string.register_error_generic_default)
             RegisterResult.Error(message)
+        }
+    }
+
+    suspend fun verifyAccount(code: String): VerifyAccountResult = withContext(dispatcher) {
+        try {
+            val request = VerifyAccountRequest(code = code)
+            val response = service.verifyAccount(request)
+            VerifyAccountResult.Success(response.email)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.verify_error_bad_request)
+                409 -> context.getString(R.string.verify_error_conflict)
+                500 -> context.getString(R.string.verify_error_server)
+                else -> context.getString(R.string.verify_error_unexpected, httpException.code())
+            }
+            VerifyAccountResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.verify_error_connection, it)
+            } ?: context.getString(R.string.verify_error_connection_default)
+            VerifyAccountResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.verify_error_generic, it)
+            } ?: context.getString(R.string.verify_error_generic_default)
+            VerifyAccountResult.Error(message)
+        }
+    }
+
+    suspend fun resendVerification(email: String): ResendVerificationResult = withContext(dispatcher) {
+        try {
+            service.resendVerification(email)
+            ResendVerificationResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.resend_error_bad_request)
+                404 -> context.getString(R.string.resend_error_not_found)
+                409 -> context.getString(R.string.resend_error_conflict)
+                500 -> context.getString(R.string.resend_error_server)
+                else -> context.getString(R.string.resend_error_unexpected, httpException.code())
+            }
+            ResendVerificationResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.resend_error_connection, it)
+            } ?: context.getString(R.string.resend_error_connection_default)
+            ResendVerificationResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.resend_error_generic, it)
+            } ?: context.getString(R.string.resend_error_generic_default)
+            ResendVerificationResult.Error(message)
         }
     }
 }

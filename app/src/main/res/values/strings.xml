@@ -58,8 +58,6 @@
     <string name="modify_product">Modify product</string>
     <string name="save">Save</string>
     <string name="error_400">Error: Incorrect data</string>
-
-    <!-- Network errors -->
     <string name="error_bad_request">Invalid request. Please verify the entered data.</string>
     <string name="error_unauthorized">Incorrect credentials.</string>
     <string name="error_unauthorized_detail">Incorrect credentials. Detail: %1$s</string>
@@ -80,5 +78,24 @@
     <string name="register_error_connection_default">Connection error. Check your network.</string>
     <string name="register_error_generic">Unexpected error: %1$s</string>
     <string name="register_error_generic_default">Unexpected error. Please try again.</string>
+    <string name="verify_success">Account verified successfully!</string>
+    <string name="verify_error_bad_request">Invalid code. Please check and try again.</string>
+    <string name="verify_error_conflict">Verification already completed or newer code sent.</string>
+    <string name="verify_error_server">Server error. Please try again later.</string>
+    <string name="verify_error_unexpected">Verification error (%1$d).</string>
+    <string name="verify_error_connection">Connection error: %1$s</string>
+    <string name="verify_error_connection_default">Connection error. Check your network.</string>
+    <string name="verify_error_generic">Unexpected error: %1$s</string>
+    <string name="verify_error_generic_default">Unexpected error. Please try again.</string>
+    <string name="resend_success">Verification code sent successfully!</string>
+    <string name="resend_error_bad_request">Invalid request. Please try again.</string>
+    <string name="resend_error_not_found">User not found.</string>
+    <string name="resend_error_conflict">Verification code already sent.</string>
+    <string name="resend_error_server">Server error. Please try again later.</string>
+    <string name="resend_error_unexpected">Error sending code (%1$d).</string>
+    <string name="resend_error_connection">Connection error: %1$s</string>
+    <string name="resend_error_connection_default">Connection error. Check your network.</string>
+    <string name="resend_error_generic">Unexpected error: %1$s</string>
+    <string name="resend_error_generic_default">Unexpected error. Please try again.</string>
 
 </resources>

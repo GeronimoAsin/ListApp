@@ -58,8 +58,6 @@
     <string name="modify_product">Modificar producto</string>
     <string name="save">Guardar</string>
     <string name="error_400">Error: Datos incorrectos</string>
-
-    <!-- Network errors -->
     <string name="error_bad_request">Solicitud inválida. Verificá los datos ingresados.</string>
     <string name="error_unauthorized">Credenciales incorrectas.</string>
     <string name="error_unauthorized_detail">Credenciales incorrectas. Detalle: %1$s</string>
@@ -80,6 +78,25 @@
     <string name="register_error_connection_default">Error de conexión. Verificá tu red.</string>
     <string name="register_error_generic">Error inesperado: %1$s</string>
     <string name="register_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="verify_success">¡Cuenta verificada exitosamente!</string>
+    <string name="verify_error_bad_request">Código inválido. Verificá e intentá nuevamente.</string>
+    <string name="verify_error_conflict">Verificación ya completada o código más nuevo enviado.</string>
+    <string name="verify_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="verify_error_unexpected">Error de verificación (%1$d).</string>
+    <string name="verify_error_connection">Error de conexión: %1$s</string>
+    <string name="verify_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="verify_error_generic">Error inesperado: %1$s</string>
+    <string name="verify_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="resend_success">¡Código de verificación enviado exitosamente!</string>
+    <string name="resend_error_bad_request">Solicitud inválida. Intentá nuevamente.</string>
+    <string name="resend_error_not_found">Usuario no encontrado.</string>
+    <string name="resend_error_conflict">Código de verificación ya enviado.</string>
+    <string name="resend_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="resend_error_unexpected">Error enviando código (%1$d).</string>
+    <string name="resend_error_connection">Error de conexión: %1$s</string>
+    <string name="resend_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="resend_error_generic">Error inesperado: %1$s</string>
+    <string name="resend_error_generic_default">Error inesperado. Intentá nuevamente.</string>
 
 
 

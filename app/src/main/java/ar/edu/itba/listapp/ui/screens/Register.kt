@@ -108,15 +108,15 @@ data class RegisterUiState(
 fun RegisterScreen(
     padding: PaddingValues,
     onLoginClick: () -> Unit,
-    onRegisterSuccess: () -> Unit = {},
+    onRegisterSuccess: (String) -> Unit = {},
     viewModel: RegisterViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
 
     // Navegar a verification cuando el registro es exitoso
-    LaunchedEffect(uiState.successMessage) {
-        if (uiState.successMessage != null) {
-            onRegisterSuccess()
+    LaunchedEffect(uiState.registeredEmail) {
+        uiState.registeredEmail?.let { email ->
+            onRegisterSuccess(email)
         }
     }
 
