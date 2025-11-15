@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,7 +18,7 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
 @Composable
-fun RegisterScreen(padding: PaddingValues, onBackClick: () -> Unit) {
+fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
@@ -40,7 +39,7 @@ fun RegisterScreen(padding: PaddingValues, onBackClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = onLoginClick) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back_button_description)
@@ -178,6 +177,6 @@ fun RegisterScreen(padding: PaddingValues, onBackClick: () -> Unit) {
 @Composable
 fun RegisterScreenPreview() {
     ListappTheme {
-        RegisterScreen(padding = PaddingValues(), onBackClick = {})
+        RegisterScreen(padding = PaddingValues(), onLoginClick = {})
     }
 }

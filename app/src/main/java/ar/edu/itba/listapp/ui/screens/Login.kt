@@ -1,6 +1,6 @@
 package ar.edu.itba.listapp.ui.screens
 
-import androidx.compose.foundation.background
+import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,22 +16,78 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import ar.edu.itba.listapp.data.network.AuthRepository
+import ar.edu.itba.listapp.data.network.LoginResult
+import ar.edu.itba.listapp.data.network.SessionManager
+import kotlinx.coroutines.launch
+
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = AuthRepository(sessionManager = SessionManager(application))
+
+    var uiState by mutableStateOf(LoginUiState())
+        private set
+
+    fun onEmailChange(value: String) {
+        uiState = uiState.copy(email = value)
+    }
+
+    fun onPasswordChange(value: String) {
+        uiState = uiState.copy(password = value)
+    }
+
+    fun dismissError() {
+        uiState = uiState.copy(errorMessage = null)
+    }
+
+    fun login() {
+        if (uiState.isLoading) return
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            when (val result = repository.login(uiState.email, uiState.password)) {
+                is LoginResult.Success -> {
+                    uiState = uiState.copy(isLoading = false, successMessage = "Inicio de sesión exitoso")
+                }
+                is LoginResult.Error -> {
+                    uiState = uiState.copy(isLoading = false, errorMessage = result.message)
+                }
+            }
+        }
+    }
+}
+
+data class LoginUiState(
+    val email: String = "",
+    val password: String = "",
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
+)
 
 @Composable
 fun LoginScreen(
     padding: PaddingValues,
     onForgotPasswordClick: () -> Unit,
     onVerificationClick: () -> Unit,
-    onRegisterClick: () -> Unit
+    onRegisterClick: () -> Unit,
+    onLoginSuccess: () -> Unit = {},
+    viewModel: LoginViewModel = viewModel()
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val uiState = viewModel.uiState
+
+    // Navegar a main app cuando login es exitoso
+    LaunchedEffect(uiState.successMessage) {
+        if (uiState.successMessage != null) {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -51,8 +107,8 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = { viewModel.onEmailChange(it) },
             label = { Text(stringResource(R.string.email_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
@@ -66,8 +122,8 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.password,
+            onValueChange = { viewModel.onPasswordChange(it) },
             label = { Text(stringResource(R.string.password_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
@@ -114,17 +170,43 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { /* TODO login */ },
+            onClick = { viewModel.login() },
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(50.dp),
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
         ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.login_button),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+
+        uiState.errorMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.login_button),
-                fontSize = 18.sp ,
-                color = MaterialTheme.colorScheme.onBackground
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        uiState.successMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = it,
+                color = Color(0xFF2E7D32),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
 
@@ -187,7 +269,8 @@ fun LoginScreenPreview() {
             padding = PaddingValues(),
             onForgotPasswordClick = {},
             onVerificationClick = {},
-            onRegisterClick = {}
+            onRegisterClick = {},
+            onLoginSuccess = {}
         )
     }
 }

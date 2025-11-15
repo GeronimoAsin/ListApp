@@ -25,7 +25,7 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
 @Composable
-fun ForgotPasswordScreen(padding: PaddingValues, onLoginClick: () -> Unit, onBackClick: () -> Unit) {
+fun ForgotPasswordScreen(padding: PaddingValues, onBackToLogin: () -> Unit) {
     var email by remember { mutableStateOf("") }
 
     Column(
@@ -41,7 +41,7 @@ fun ForgotPasswordScreen(padding: PaddingValues, onLoginClick: () -> Unit, onBac
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = onBackToLogin) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back_button_description)
@@ -109,7 +109,7 @@ fun ForgotPasswordScreen(padding: PaddingValues, onLoginClick: () -> Unit, onBac
                 color = MaterialTheme.colorScheme.onBackground
             ),
             modifier = Modifier.clickable {
-                onLoginClick()
+                onBackToLogin()
             }
         )
     }
@@ -141,6 +141,6 @@ private fun clickablePart(
 @Composable
 fun ForgotPasswordScreenPreview() {
     ListappTheme {
-        ForgotPasswordScreen(padding = PaddingValues(), onLoginClick = {}, onBackClick = {})
+        ForgotPasswordScreen(padding = PaddingValues(), onBackToLogin = {})
     }
 }
