@@ -9,8 +9,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
-import ar.edu.itba.listapp.ui.composables.AddItemDialog
+import ar.edu.itba.listapp.ui.composables.AddProductForm
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.ModifyProductForm
 import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 
@@ -26,14 +27,29 @@ fun PantryScreen(padding: PaddingValues) {
     }
     val myPantryStr = stringResource(id = R.string.my_pantry)
     var listTitle by remember(myPantryStr) { mutableStateOf(myPantryStr) }
-    var showDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showModifyDialog by remember { mutableStateOf<Pair<String, String>?>(null) }
 
-    if (showDialog) {
-        AddItemDialog(
-            onDismiss = { showDialog = false },
+    if (showAddDialog) {
+        AddProductForm(
+            onDismiss = { showAddDialog = false },
             onConfirm = { emoji, name ->
                 pantryItems.add(emoji to name)
-                showDialog = false
+                showAddDialog = false
+            }
+        )
+    }
+
+    showModifyDialog?.let {
+        ModifyProductForm(
+            item = it,
+            onDismiss = { showModifyDialog = null },
+            onConfirm = { emoji, name ->
+                val index = pantryItems.indexOf(it)
+                if (index != -1) {
+                    pantryItems[index] = emoji to name
+                }
+                showModifyDialog = null
             }
         )
     }
@@ -71,13 +87,13 @@ fun PantryScreen(padding: PaddingValues) {
             CollapsibleList(
                 title = listTitle,
                 items = filteredItems,
-                onAddItem = { showDialog = true },
+                onAddItem = { showAddDialog = true },
                 onTitleChanged = { newListTitle -> listTitle = newListTitle },
                 onDeleteList = {
                     pantryItems.clear()
                 },
                 onEditItem = { item ->
-                    // TODO: Implementar la edición de un ítem.
+                    showModifyDialog = item
                 },
                 onDeleteItem = { item ->
                     pantryItems.remove(item)

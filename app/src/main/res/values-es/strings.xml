@@ -51,4 +51,13 @@
     <string name="reset_password_button">Reestablecer contraseña</string>
     <string name="reset_password_resend_prompt">¿No recibió el código? </string>
     <string name="reset_password_resend_link">Reenviar código</string>
+    <string name="add_product">Agregar producto</string>
+    <string name="product_name">Nombre del producto</string>
+    <string name="product_name_placeholder">Nombre del producto</string>
+    <string name="emoji">Emoji</string>
+    <string name="modify_product">Modificar producto</string>
+    <string name="save">Guardar</string>
+
+
+
 </resources>
