@@ -154,4 +154,24 @@
     <string name="change_password_error_generic">Unexpected error: %1$s</string>
     <string name="change_password_error_generic_default">Unexpected error. Please try again.</string>
 
+    <!-- Categories error messages -->
+    <string name="category_error_bad_request">Invalid category data. Please check all fields.</string>
+    <string name="category_error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="category_error_conflict">Category already exists.</string>
+    <string name="category_error_not_found">Category not found.</string>
+    <string name="category_error_server">Server error. Please try again later.</string>
+    <string name="category_error_unexpected">Category error (%1$d).</string>
+    <string name="category_error_connection">Connection error. Check your network.</string>
+    <string name="category_error_generic">Unexpected error: %1$s</string>
+
+    <!-- Products error messages -->
+    <string name="product_error_bad_request">Invalid product data. Please check all fields.</string>
+    <string name="product_error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="product_error_conflict">Product already exists.</string>
+    <string name="product_error_not_found">Product not found.</string>
+    <string name="product_error_server">Server error. Please try again later.</string>
+    <string name="product_error_unexpected">Product error (%1$d).</string>
+    <string name="product_error_connection">Connection error. Check your network.</string>
+    <string name="product_error_generic">Unexpected error: %1$s</string>
+
 </resources>

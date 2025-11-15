@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,77 +24,159 @@ import ar.edu.itba.listapp.ui.composables.NewCategoryForm
 import ar.edu.itba.listapp.ui.composables.NoItemsMessage
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.theme.ListappTheme
-data class ProductCategory(var id: Long, var title: String, var items: List<Pair<String, String>>)
+import kotlinx.coroutines.launch
+import ar.edu.itba.listapp.data.network.*
+
+private data class ProductUI(var id: Long, var emoji: String, var name: String)
+private data class CategoryUI(var id: Long, var title: String, val items: MutableList<ProductUI>)
 
 @Composable
 fun ProductsScreen(scaffoldPadding: PaddingValues) {
-    var searchText by remember { mutableStateOf("") }
-    val categories = remember {
-        mutableStateListOf(
-            ProductCategory(1L, "Frutas", listOf("🍎" to "Manzana", "🍌" to "Banana"))
-        )
-    }
-    var nextId by remember { mutableStateOf(2L) }
-    var showCategoryDialog by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf<ProductCategory?>(null) }
-    var showModifyDialog by remember { mutableStateOf<Pair<ProductCategory, Pair<String, String>>?>(null) }
+    val context = LocalContext.current
+    val repository = remember { ProductRepository(context, sessionManager = SessionManager(context)) }
+    val scope = rememberCoroutineScope()
 
-    val filteredCategories = if (searchText.isBlank()) {
-        categories
-    } else {
-        categories.mapNotNull { category ->
-            val filteredItems = category.items.filter { it.second.contains(searchText, ignoreCase = true) }
-            if (category.title.contains(searchText, ignoreCase = true)) {
-                category
-            } else if (filteredItems.isNotEmpty()) {
-                category.copy(items = filteredItems)
-            } else {
-                null
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var isLoading by remember { mutableStateOf(true) }
+    var searchText by remember { mutableStateOf("") }
+
+    // Categories and dialog states
+    val categories = remember { mutableStateListOf<CategoryUI>() }
+    var showCategoryDialog by remember { mutableStateOf(false) }
+    var showAddDialogForCategory by remember { mutableStateOf<CategoryUI?>(null) }
+    var showModifyDialogProduct by remember { mutableStateOf<ProductUI?>(null) }
+    var showModifyDialogCategory by remember { mutableStateOf<CategoryUI?>(null) }
+
+    // Reload categories and products
+    fun reload() {
+        val snackbarHostState = snackbarHostState // capture
+        scope.launch {
+            isLoading = true
+            categories.clear()
+            when (val catRes = repository.getCategories(page = 1, perPage = 100, sortBy = "name", order = "ASC")) {
+                is GetCategoriesResult.Success -> {
+                    // para cada categoria, obtenemos sus productos
+                    for (cat in catRes.categories) {
+                        val catUi = CategoryUI(cat.id, cat.name, mutableStateListOf())
+                        when (val prodRes = repository.getProducts(categoryId = cat.id, page = 1, perPage = 500, sortBy = "name", order = "ASC")) {
+                            is GetProductsResult.Success -> {
+                                catUi.items.addAll(prodRes.products.map { p ->
+                                    val emoji = p.metadata["emoji"] ?: "\uD83E\uDDC2" //fallback emoji
+                                    ProductUI(p.id, emoji, p.name)
+                                })
+                            }
+                            is GetProductsResult.Error -> {
+                                // Show products load error but keep category visible
+                                snackbarHostState.showSnackbar(prodRes.message)
+                            }
+                        }
+                        categories.add(catUi)
+                    }
+                }
+                is GetCategoriesResult.Error -> snackbarHostState.showSnackbar(catRes.message)
+            }
+            isLoading = false
+        }
+    }
+
+    // Initial load
+    LaunchedEffect(Unit) {
+        reload()
+    }
+
+    // Filtering for UI - reactive to changes in categories content
+    val filteredCategories by remember(searchText) {
+        derivedStateOf {
+            val base = categories.toList()
+            if (searchText.isBlank()) base else {
+                base.mapNotNull { category ->
+                    val filteredItems = category.items.filter { it.name.contains(searchText, ignoreCase = true) }
+                    when {
+                        category.title.contains(searchText, ignoreCase = true) -> category
+                        filteredItems.isNotEmpty() -> category.copy(items = filteredItems.toMutableList())
+                        else -> null
+                    }
+                }
             }
         }
     }
 
+    // Dialogs
     if (showCategoryDialog) {
         NewCategoryForm(
             onDismiss = { showCategoryDialog = false },
             onConfirm = { categoryName ->
-                if (categoryName.isNotBlank()) {
-                    categories.add(ProductCategory(nextId++, categoryName, emptyList()))
+                if (categoryName.isBlank()) {
+                    showCategoryDialog = false
+                    return@NewCategoryForm
                 }
-                showCategoryDialog = false
-            }
-        )
-    }
-
-    showAddDialog?.let { category ->
-        AddProductForm(
-            onDismiss = { showAddDialog = null },
-            onConfirm = { emoji, name ->
-                val index = categories.indexOfFirst { it.id == category.id }
-                if (index != -1) {
-                    val newItems = categories[index].items.toMutableList().apply { add(emoji to name) }
-                    categories[index] = categories[index].copy(items = newItems)
-                }
-                showAddDialog = null
-            }
-        )
-    }
-
-    showModifyDialog?.let {
-        ModifyProductForm(
-            item = it.second,
-            onDismiss = { showModifyDialog = null },
-            onConfirm = { emoji, name ->
-                val categoryIndex = categories.indexOfFirst { c -> c.id == it.first.id }
-                if (categoryIndex != -1) {
-                    val itemIndex = categories[categoryIndex].items.indexOf(it.second)
-                    if (itemIndex != -1) {
-                        val newItems = categories[categoryIndex].items.toMutableList()
-                        newItems[itemIndex] = emoji to name
-                        categories[categoryIndex] = categories[categoryIndex].copy(items = newItems)
+                scope.launch {
+                    when (val res = repository.createCategory(categoryName)) {
+                        is CreateCategoryResult.Success -> {
+                            // Optimistic add for instant feedback (use stateful list for items)
+                            categories.add(CategoryUI(res.category.id, res.category.name, mutableStateListOf()))
+                            // And reload from server to stay in sync
+                            reload()
+                        }
+                        is CreateCategoryResult.Error -> snackbarHostState.showSnackbar(res.message)
                     }
+                    showCategoryDialog = false
                 }
-                showModifyDialog = null
+            }
+        )
+    }
+
+    // When adding a product, mutate the backing category by id
+    showAddDialogForCategory?.let { category ->
+        AddProductForm(
+            onDismiss = { showAddDialogForCategory = null },
+            onConfirm = { emoji, name ->
+                if (name.isBlank()) {
+                    showAddDialogForCategory = null
+                    return@AddProductForm
+                }
+                scope.launch {
+                    when (val res = repository.createProduct(name = name, categoryId = category.id, metadata = mapOf("emoji" to emoji))) {
+                        is CreateProductResult.Success -> {
+                            val baseCategory = categories.find { it.id == category.id } ?: category
+                            baseCategory.items.add(ProductUI(res.product.id, emoji, name))
+                        }
+                        is CreateProductResult.Error -> snackbarHostState.showSnackbar(res.message)
+                    }
+                    showAddDialogForCategory = null
+                }
+            }
+        )
+    }
+
+    showModifyDialogProduct?.let { prod ->
+        ModifyProductForm(
+            item = prod.emoji to prod.name,
+            onDismiss = {
+                showModifyDialogProduct = null
+                showModifyDialogCategory = null
+            },
+            onConfirm = { emoji, name ->
+                val category = showModifyDialogCategory
+                if (category == null) {
+                    showModifyDialogProduct = null
+                    return@ModifyProductForm
+                }
+                scope.launch {
+                    when (val res = repository.updateProduct(id = prod.id, name = name, categoryId = category.id, metadata = mapOf("emoji" to emoji))) {
+                        is UpdateProductResult.Success -> {
+                            // Replace element to trigger recomposition
+                            val idx = category.items.indexOfFirst { it.id == prod.id }
+                            if (idx != -1) {
+                                category.items[idx] = prod.copy(emoji = emoji, name = name)
+                            }
+                        }
+                        is UpdateProductResult.Error -> snackbarHostState.showSnackbar(res.message)
+                    }
+                    showModifyDialogProduct = null
+                    showModifyDialogCategory = null
+                }
             }
         )
     }
@@ -110,7 +193,8 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                 shape = RoundedCornerShape(50)
             )
         },
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.Center,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -139,35 +223,70 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
-            if (filteredCategories.isEmpty()) {
-                item {
-                    NoItemsMessage()
-                }
+            if (!isLoading && filteredCategories.isEmpty()) {
+                item { NoItemsMessage() }
             } else {
                 items(filteredCategories, key = { it.id }) { category ->
                     CollapsibleList(
                         title = category.title,
-                        items = category.items,
-                        onAddItem = { showAddDialog = category },
+                        items = category.items.map { it.emoji to it.name },
+                        onAddItem = {
+                            // Always use the backing category from state list
+                            showAddDialogForCategory = categories.find { it.id == category.id } ?: category
+                        },
                         onTitleChanged = { newTitle ->
-                            val index = categories.indexOfFirst { it.id == category.id }
-                            if (index != -1) {
-                                categories[index] = categories[index].copy(title = newTitle)
+                            val idx = categories.indexOfFirst { it.id == category.id }
+                            if (idx != -1) {
+                                val old = categories[idx]
+                                categories[idx] = old.copy(title = newTitle)
+                                scope.launch {
+                                    when (val res = repository.updateCategory(id = category.id, name = newTitle)) {
+                                        is UpdateCategoryResult.Success -> Unit
+                                        is UpdateCategoryResult.Error -> {
+                                            categories[idx] = old
+                                            snackbarHostState.showSnackbar(res.message)
+                                        }
+                                    }
+                                }
                             }
                         },
                         onDeleteList = {
-                            categories.removeIf { it.id == category.id }
+                            scope.launch {
+                                when (val res = repository.deleteCategory(category.id)) {
+                                    is DeleteCategoryResult.Success -> {
+                                        categories.removeIf { it.id == category.id }
+                                    }
+                                    is DeleteCategoryResult.Error -> snackbarHostState.showSnackbar(res.message)
+                                }
+                            }
                         },
                         onEditItem = { item ->
-                            showModifyDialog = category to item
+                            val baseCategory = categories.find { it.id == category.id } ?: category
+                            val prod = baseCategory.items.find { it.emoji == item.first && it.name == item.second }
+                            if (prod != null) {
+                                showModifyDialogProduct = prod
+                                showModifyDialogCategory = baseCategory
+                            }
                         },
                         onDeleteItem = { item ->
-                            val index = categories.indexOfFirst { it.id == category.id }
-                            if (index != -1) {
-                                val newItems = categories[index].items.toMutableList().apply { remove(item) }
-                                categories[index] = categories[index].copy(items = newItems)
+                            val baseCategory = categories.find { it.id == category.id } ?: category
+                            val prod = baseCategory.items.find { it.emoji == item.first && it.name == item.second }
+                            if (prod != null) {
+                                scope.launch {
+                                    when (val res = repository.deleteProduct(prod.id)) {
+                                        is DeleteProductResult.Success -> {
+                                            baseCategory.items.remove(prod)
+                                        }
+                                        is DeleteProductResult.Error -> snackbarHostState.showSnackbar(res.message)
+                                    }
+                                }
                             }
                         }
                     )

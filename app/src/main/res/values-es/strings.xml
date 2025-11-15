@@ -154,6 +154,26 @@
     <string name="change_password_error_generic">Error inesperado: %1$s</string>
     <string name="change_password_error_generic_default">Error inesperado. Intentá nuevamente.</string>
 
+    <!-- Categories error messages -->
+    <string name="category_error_bad_request">Datos de categoría inválidos. Verificá los campos.</string>
+    <string name="category_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="category_error_conflict">La categoría ya existe.</string>
+    <string name="category_error_not_found">Categoría no encontrada.</string>
+    <string name="category_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="category_error_unexpected">Error de categoría (%1$d).</string>
+    <string name="category_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="category_error_generic">Error inesperado: %1$s</string>
+
+    <!-- Products error messages -->
+    <string name="product_error_bad_request">Datos de producto inválidos. Verificá los campos.</string>
+    <string name="product_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="product_error_conflict">El producto ya existe.</string>
+    <string name="product_error_not_found">Producto no encontrado.</string>
+    <string name="product_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="product_error_unexpected">Error de producto (%1$d).</string>
+    <string name="product_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="product_error_generic">Error inesperado: %1$s</string>
+
 
 
 </resources>

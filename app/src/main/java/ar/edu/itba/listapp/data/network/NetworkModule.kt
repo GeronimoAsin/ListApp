@@ -12,8 +12,16 @@ object NetworkModule {
 
     private lateinit var sessionManager: SessionManager
 
+    // provider to fetch token dynamically
+    @Volatile
+    private var authTokenProvider: (() -> String?)? = null
+
     fun initialize(context: Context) {
         sessionManager = SessionManager(context)
+    }
+
+    fun setAuthTokenProvider(provider: () -> String?) {
+        authTokenProvider = provider
     }
 
     private val json = Json {
@@ -31,11 +39,13 @@ object NetworkModule {
             .addHeader("Content-Type", "application/json")
             .addHeader("Accept", "application/json")
 
-        // Agregar token si existe
-        if (::sessionManager.isInitialized) {
-            sessionManager.loadAuthToken()?.let { token ->
-                requestBuilder.addHeader("Authorization", "Bearer $token")
-            }
+        // Get token either from provider or SessionManager as fallback
+        val tokenFromProvider = authTokenProvider?.invoke()
+        val tokenFromSession = if (::sessionManager.isInitialized) sessionManager.loadAuthToken() else null
+        val token = tokenFromProvider ?: tokenFromSession
+        if (!token.isNullOrBlank()) {
+            val headerValue = if (token.startsWith("Bearer ")) token else "Bearer $token"
+            requestBuilder.header("Authorization", headerValue)
         }
 
         chain.proceed(requestBuilder.build())
@@ -64,5 +74,8 @@ object NetworkModule {
     val authService: AuthService by lazy {
         retrofit.create(AuthService::class.java)
     }
-}
 
+    val productService: ProductService by lazy {
+        retrofit.create(ProductService::class.java)
+    }
+}
