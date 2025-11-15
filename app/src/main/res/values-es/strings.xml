@@ -116,6 +116,43 @@
     <string name="reset_password_error_generic">Error inesperado: %1$s</string>
     <string name="reset_password_error_generic_default">Error inesperado. Intentá nuevamente.</string>
     <string name="reset_password_error_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="profile_title">👤 Perfil</string>
+    <string name="profile_name_label">Nombre:</string>
+    <string name="profile_surname_label">Apellido:</string>
+    <string name="profile_nickname_label">Apodo:</string>
+    <string name="profile_change_password_button">Cambiar contraseña</string>
+    <string name="profile_logout_button">Cerrar sesión</string>
+    <string name="profile_error_unauthorized">Sesión expirada. Por favor iniciá sesión nuevamente.</string>
+    <string name="profile_error_not_found">Perfil no encontrado.</string>
+    <string name="profile_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="profile_error_unexpected">Error cargando perfil (%1$d).</string>
+    <string name="profile_error_connection">Error de conexión: %1$s</string>
+    <string name="profile_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="profile_error_generic">Error inesperado: %1$s</string>
+    <string name="profile_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="logout_error_unauthorized">Sesión expirada.</string>
+    <string name="logout_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="logout_error_unexpected">Error cerrando sesión (%1$d).</string>
+    <string name="logout_error_connection">Error de conexión: %1$s</string>
+    <string name="logout_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="logout_error_generic">Error inesperado: %1$s</string>
+    <string name="logout_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="change_password_title">Cambiar contraseña</string>
+    <string name="change_password_prompt">Ingresá tu contraseña actual y tu nueva contraseña</string>
+    <string name="change_password_current_label">Contraseña actual</string>
+    <string name="change_password_new_label">Nueva contraseña</string>
+    <string name="change_password_repeat_label">Repetir nueva contraseña</string>
+    <string name="change_password_button">Cambiar contraseña</string>
+    <string name="change_password_success">¡Contraseña cambiada exitosamente!</string>
+    <string name="change_password_error_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="change_password_error_bad_request">Contraseña inválida.</string>
+    <string name="change_password_error_unauthorized">La contraseña actual es incorrecta.</string>
+    <string name="change_password_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="change_password_error_unexpected">Error cambiando contraseña (%1$d).</string>
+    <string name="change_password_error_connection">Error de conexión: %1$s</string>
+    <string name="change_password_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="change_password_error_generic">Error inesperado: %1$s</string>
+    <string name="change_password_error_generic_default">Error inesperado. Intentá nuevamente.</string>
 
 
 

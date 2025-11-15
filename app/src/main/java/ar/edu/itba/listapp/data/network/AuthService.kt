@@ -1,5 +1,7 @@
 package ar.edu.itba.listapp.data.network
 
+import ar.edu.itba.listapp.data.model.ChangePasswordRequest
+import ar.edu.itba.listapp.data.model.ChangePasswordResponse
 import ar.edu.itba.listapp.data.model.ForgotPasswordResponse
 import ar.edu.itba.listapp.data.model.LoginRequest
 import ar.edu.itba.listapp.data.model.LoginResponse
@@ -8,9 +10,11 @@ import ar.edu.itba.listapp.data.model.RegisterResponse
 import ar.edu.itba.listapp.data.model.ResendVerificationResponse
 import ar.edu.itba.listapp.data.model.ResetPasswordRequest
 import ar.edu.itba.listapp.data.model.ResetPasswordResponse
+import ar.edu.itba.listapp.data.model.UserProfile
 import ar.edu.itba.listapp.data.model.VerifyAccountRequest
 import ar.edu.itba.listapp.data.model.VerifyAccountResponse
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -32,5 +36,14 @@ interface AuthService {
 
     @POST("users/reset-password")
     suspend fun resetPassword(@Body body: ResetPasswordRequest): ResetPasswordResponse
+
+    @GET("users/profile")
+    suspend fun getProfile(): UserProfile
+
+    @POST("users/logout")
+    suspend fun logout()
+
+    @POST("users/change-password")
+    suspend fun changePassword(@Body body: ChangePasswordRequest): ChangePasswordResponse
 }
 

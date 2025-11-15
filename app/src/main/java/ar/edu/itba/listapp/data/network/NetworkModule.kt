@@ -1,5 +1,6 @@
 package ar.edu.itba.listapp.data.network
 
+import android.content.Context
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -8,6 +9,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object NetworkModule {
+
+    private lateinit var sessionManager: SessionManager
+
+    fun initialize(context: Context) {
+        sessionManager = SessionManager(context)
+    }
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -20,11 +27,18 @@ object NetworkModule {
 
     private val headersInterceptor = okhttp3.Interceptor { chain ->
         val originalRequest = chain.request()
-        val requestWithHeaders = originalRequest.newBuilder()
+        val requestBuilder = originalRequest.newBuilder()
             .addHeader("Content-Type", "application/json")
             .addHeader("Accept", "application/json")
-            .build()
-        chain.proceed(requestWithHeaders)
+
+        // Agregar token si existe
+        if (::sessionManager.isInitialized) {
+            sessionManager.loadAuthToken()?.let { token ->
+                requestBuilder.addHeader("Authorization", "Bearer $token")
+            }
+        }
+
+        chain.proceed(requestBuilder.build())
     }
 
     private val httpClient: OkHttpClient by lazy {

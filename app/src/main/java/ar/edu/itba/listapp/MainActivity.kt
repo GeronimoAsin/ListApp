@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import ar.edu.itba.listapp.ui.layouts.AppDestination
 import ar.edu.itba.listapp.ui.layouts.BaseLayout
 import ar.edu.itba.listapp.ui.screens.*
+import ar.edu.itba.listapp.data.network.NetworkModule
 import ar.edu.itba.listapp.ui.theme.LightGreen
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
@@ -20,6 +21,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Inicializar NetworkModule con el contexto
+        NetworkModule.initialize(applicationContext)
+
         setContent {
             ListappTheme(dynamicColor = false) {
                 ListappApp()
@@ -34,7 +39,8 @@ enum class AppScreen {
     REGISTER,
     FORGOT_PASSWORD,
     VERIFICATION,
-    RESET_PASSWORD
+    RESET_PASSWORD,
+    CHANGE_PASSWORD
 }
 
 @Composable
@@ -108,6 +114,17 @@ fun ListappApp() {
                 )
             }
         }
+        AppScreen.CHANGE_PASSWORD -> {
+            Scaffold(
+                containerColor = LightGreen
+            ) { padding ->
+                ChangePasswordScreen(
+                    padding = padding,
+                    onPasswordChanged = { currentScreen = AppScreen.MAIN_APP },
+                    onBackClick = { currentScreen = AppScreen.MAIN_APP }
+                )
+            }
+        }
         AppScreen.MAIN_APP -> {
             BaseLayout(
                 currentDestination = currentDestination,
@@ -117,7 +134,11 @@ fun ListappApp() {
                     AppDestination.LISTS -> ListsScreen(innerPadding)
                     AppDestination.PRODUCTS -> ProductsScreen(innerPadding)
                     AppDestination.PANTRY -> PantryScreen(innerPadding)
-                    AppDestination.PROFILE -> ProfileScreen(innerPadding)
+                    AppDestination.PROFILE -> ProfileScreen(
+                        padding = innerPadding,
+                        onChangePassword = { currentScreen = AppScreen.CHANGE_PASSWORD },
+                        onLogout = { currentScreen = AppScreen.LOGIN }
+                    )
                 }
             }
         }

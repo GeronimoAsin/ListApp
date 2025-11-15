@@ -7,6 +7,7 @@ import ar.edu.itba.listapp.data.model.RegisterMetadata
 import ar.edu.itba.listapp.data.model.RegisterRequest
 import ar.edu.itba.listapp.data.model.VerifyAccountRequest
 import ar.edu.itba.listapp.data.model.ResetPasswordRequest
+import ar.edu.itba.listapp.data.model.ChangePasswordRequest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -41,6 +42,21 @@ sealed interface ForgotPasswordResult {
 sealed interface ResetPasswordResult {
     data object Success : ResetPasswordResult
     data class Error(val message: String) : ResetPasswordResult
+}
+
+sealed interface ProfileResult {
+    data class Success(val profile: ar.edu.itba.listapp.data.model.UserProfile) : ProfileResult
+    data class Error(val message: String) : ProfileResult
+}
+
+sealed interface LogoutResult {
+    data object Success : LogoutResult
+    data class Error(val message: String) : LogoutResult
+}
+
+sealed interface ChangePasswordResult {
+    data object Success : ChangePasswordResult
+    data class Error(val message: String) : ChangePasswordResult
 }
 
 class AuthRepository(
@@ -225,6 +241,88 @@ class AuthRepository(
                 context.getString(R.string.reset_password_error_generic, it)
             } ?: context.getString(R.string.reset_password_error_generic_default)
             ResetPasswordResult.Error(message)
+        }
+    }
+
+    suspend fun getProfile(): ProfileResult = withContext(dispatcher) {
+        try {
+            val profile = service.getProfile()
+            ProfileResult.Success(profile)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                401 -> context.getString(R.string.profile_error_unauthorized)
+                404 -> context.getString(R.string.profile_error_not_found)
+                500 -> context.getString(R.string.profile_error_server)
+                else -> context.getString(R.string.profile_error_unexpected, httpException.code())
+            }
+            ProfileResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.profile_error_connection, it)
+            } ?: context.getString(R.string.profile_error_connection_default)
+            ProfileResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.profile_error_generic, it)
+            } ?: context.getString(R.string.profile_error_generic_default)
+            ProfileResult.Error(message)
+        }
+    }
+
+    suspend fun logout(): LogoutResult = withContext(dispatcher) {
+        try {
+            service.logout()
+            sessionManager.removeAuthToken()
+            LogoutResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                401 -> context.getString(R.string.logout_error_unauthorized)
+                500 -> context.getString(R.string.logout_error_server)
+                else -> context.getString(R.string.logout_error_unexpected, httpException.code())
+            }
+            sessionManager.removeAuthToken()
+            LogoutResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.logout_error_connection, it)
+            } ?: context.getString(R.string.logout_error_connection_default)
+            sessionManager.removeAuthToken()
+            LogoutResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.logout_error_generic, it)
+            } ?: context.getString(R.string.logout_error_generic_default)
+            sessionManager.removeAuthToken()
+            LogoutResult.Error(message)
+        }
+    }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String): ChangePasswordResult = withContext(dispatcher) {
+        try {
+            val request = ChangePasswordRequest(
+                currentPassword = currentPassword,
+                newPassword = newPassword
+            )
+            service.changePassword(request)
+            ChangePasswordResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.change_password_error_bad_request)
+                401 -> context.getString(R.string.change_password_error_unauthorized)
+                500 -> context.getString(R.string.change_password_error_server)
+                else -> context.getString(R.string.change_password_error_unexpected, httpException.code())
+            }
+            ChangePasswordResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.change_password_error_connection, it)
+            } ?: context.getString(R.string.change_password_error_connection_default)
+            ChangePasswordResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.change_password_error_generic, it)
+            } ?: context.getString(R.string.change_password_error_generic_default)
+            ChangePasswordResult.Error(message)
         }
     }
 }
