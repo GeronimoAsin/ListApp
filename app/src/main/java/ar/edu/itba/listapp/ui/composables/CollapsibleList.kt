@@ -116,42 +116,43 @@ fun CollapsibleList(
             AnimatedVisibility(visible = expanded && items.isNotEmpty()) {
                 Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                     items.forEach { item ->
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = {
-                                if (it == SwipeToDismissBoxValue.EndToStart) {
-                                    onDeleteItem(item)
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
-                        )
-                        //caja para eliminar un item de la lista
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = {
-                                val color by animateColorAsState(
-                                    when (dismissState.targetValue) {
-                                        SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.8f)
-                                        else -> Color.Transparent
+                        key(item) {
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = {
+                                    if (it == SwipeToDismissBoxValue.EndToStart) {
+                                        onDeleteItem(item)
+                                        true
+                                    } else {
+                                        false
                                     }
-                                )
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(color, shape = RoundedCornerShape(14.dp))
-                                        .padding(horizontal = 20.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
-                                        tint = Color.White
-                                    )
                                 }
-                            }
-                        ) { ListItem(item = item, onEdit = { onEditItem(item) }) }
+                            )
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = {
+                                    val color by animateColorAsState(
+                                        when (dismissState.targetValue) {
+                                            SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.8f)
+                                            else -> Color.Transparent
+                                        }
+                                    )
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(color, shape = RoundedCornerShape(14.dp))
+                                            .padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete Icon",
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
+                            ) { ListItem(item = item, onEdit = { onEditItem(item) }) }
+                        }
                     }
                 }
             }
@@ -176,8 +177,6 @@ private fun RoundIconButton(
     }
 }
 
-
-//composable de los items de la lista
 @Composable
 fun ListItem(item: Pair<String, String>, onEdit: () -> Unit) {
     Card(
@@ -208,8 +207,6 @@ fun ListItem(item: Pair<String, String>, onEdit: () -> Unit) {
         }
     }
 }
-
-
 
 @Composable
 private fun SoftRoundIconButton(
