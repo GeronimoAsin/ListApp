@@ -97,6 +97,25 @@
     <string name="resend_error_connection_default">Error de conexión. Verificá tu red.</string>
     <string name="resend_error_generic">Error inesperado: %1$s</string>
     <string name="resend_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="forgot_password_success">¡Código de restablecimiento enviado a tu correo!</string>
+    <string name="forgot_password_error_bad_request">Formato de correo inválido.</string>
+    <string name="forgot_password_error_not_found">Correo no registrado.</string>
+    <string name="forgot_password_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="forgot_password_error_unexpected">Error (%1$d).</string>
+    <string name="forgot_password_error_connection">Error de conexión: %1$s</string>
+    <string name="forgot_password_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="forgot_password_error_generic">Error inesperado: %1$s</string>
+    <string name="forgot_password_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="reset_password_success">¡Contraseña restablecida exitosamente!</string>
+    <string name="reset_password_error_bad_request">Código o contraseña inválidos.</string>
+    <string name="reset_password_error_not_found">Código de restablecimiento no encontrado o expirado.</string>
+    <string name="reset_password_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="reset_password_error_unexpected">Error (%1$d).</string>
+    <string name="reset_password_error_connection">Error de conexión: %1$s</string>
+    <string name="reset_password_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="reset_password_error_generic">Error inesperado: %1$s</string>
+    <string name="reset_password_error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="reset_password_error_password_mismatch">Las contraseñas no coinciden.</string>
 
 
 

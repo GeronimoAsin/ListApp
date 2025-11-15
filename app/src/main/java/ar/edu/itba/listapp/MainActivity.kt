@@ -77,7 +77,11 @@ fun ListappApp() {
             ) { padding ->
                 ForgotPasswordScreen(
                     padding = padding,
-                    onBackToLogin = { currentScreen = AppScreen.LOGIN }
+                    onBackToLogin = { currentScreen = AppScreen.LOGIN },
+                    onCodeSent = { email ->
+                        userEmail = email
+                        currentScreen = AppScreen.RESET_PASSWORD
+                    }
                 )
             }
         }
@@ -99,7 +103,8 @@ fun ListappApp() {
             ) { padding ->
                 ResetPasswordScreen(
                     padding = padding,
-                    onPasswordReset = { currentScreen = AppScreen.LOGIN }
+                    onPasswordReset = { currentScreen = AppScreen.LOGIN },
+                    onBackClick = { currentScreen = AppScreen.LOGIN }
                 )
             }
         }

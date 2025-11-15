@@ -6,6 +6,7 @@ import ar.edu.itba.listapp.data.model.LoginRequest
 import ar.edu.itba.listapp.data.model.RegisterMetadata
 import ar.edu.itba.listapp.data.model.RegisterRequest
 import ar.edu.itba.listapp.data.model.VerifyAccountRequest
+import ar.edu.itba.listapp.data.model.ResetPasswordRequest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,6 +31,16 @@ sealed interface VerifyAccountResult {
 sealed interface ResendVerificationResult {
     data object Success : ResendVerificationResult
     data class Error(val message: String) : ResendVerificationResult
+}
+
+sealed interface ForgotPasswordResult {
+    data class Success(val email: String) : ForgotPasswordResult
+    data class Error(val message: String) : ForgotPasswordResult
+}
+
+sealed interface ResetPasswordResult {
+    data object Success : ResetPasswordResult
+    data class Error(val message: String) : ResetPasswordResult
 }
 
 class AuthRepository(
@@ -163,6 +174,57 @@ class AuthRepository(
                 context.getString(R.string.resend_error_generic, it)
             } ?: context.getString(R.string.resend_error_generic_default)
             ResendVerificationResult.Error(message)
+        }
+    }
+
+    suspend fun forgotPassword(email: String): ForgotPasswordResult = withContext(dispatcher) {
+        try {
+            service.forgotPassword(email)
+            ForgotPasswordResult.Success(email)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.forgot_password_error_bad_request)
+                404 -> context.getString(R.string.forgot_password_error_not_found)
+                500 -> context.getString(R.string.forgot_password_error_server)
+                else -> context.getString(R.string.forgot_password_error_unexpected, httpException.code())
+            }
+            ForgotPasswordResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.forgot_password_error_connection, it)
+            } ?: context.getString(R.string.forgot_password_error_connection_default)
+            ForgotPasswordResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.forgot_password_error_generic, it)
+            } ?: context.getString(R.string.forgot_password_error_generic_default)
+            ForgotPasswordResult.Error(message)
+        }
+    }
+
+    suspend fun resetPassword(code: String, password: String): ResetPasswordResult = withContext(dispatcher) {
+        try {
+            val request = ResetPasswordRequest(code = code, password = password)
+            service.resetPassword(request)
+            ResetPasswordResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.reset_password_error_bad_request)
+                404 -> context.getString(R.string.reset_password_error_not_found)
+                500 -> context.getString(R.string.reset_password_error_server)
+                else -> context.getString(R.string.reset_password_error_unexpected, httpException.code())
+            }
+            ResetPasswordResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = ioException.message?.let {
+                context.getString(R.string.reset_password_error_connection, it)
+            } ?: context.getString(R.string.reset_password_error_connection_default)
+            ResetPasswordResult.Error(message)
+        } catch (exception: Exception) {
+            val message = exception.message?.let {
+                context.getString(R.string.reset_password_error_generic, it)
+            } ?: context.getString(R.string.reset_password_error_generic_default)
+            ResetPasswordResult.Error(message)
         }
     }
 }

@@ -1,6 +1,6 @@
 package ar.edu.itba.listapp.ui.screens
 
-
+import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,12 +21,72 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ar.edu.itba.listapp.R
+import ar.edu.itba.listapp.data.network.AuthRepository
+import ar.edu.itba.listapp.data.network.ForgotPasswordResult
+import ar.edu.itba.listapp.data.network.SessionManager
 import ar.edu.itba.listapp.ui.theme.ListappTheme
+import kotlinx.coroutines.launch
+
+class ForgotPasswordViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = AuthRepository(
+        context = application,
+        sessionManager = SessionManager(application)
+    )
+
+    var uiState by mutableStateOf(ForgotPasswordUiState())
+        private set
+
+    fun onEmailChange(value: String) {
+        uiState = uiState.copy(email = value)
+    }
+
+    fun sendCode() {
+        if (uiState.isLoading) return
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            when (val result = repository.forgotPassword(uiState.email)) {
+                is ForgotPasswordResult.Success -> {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        successMessage = getApplication<Application>().getString(R.string.forgot_password_success),
+                        requestedEmail = result.email
+                    )
+                }
+                is ForgotPasswordResult.Error -> {
+                    uiState = uiState.copy(isLoading = false, errorMessage = result.message)
+                }
+            }
+        }
+    }
+}
+
+data class ForgotPasswordUiState(
+    val email: String = "",
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null,
+    val requestedEmail: String? = null
+)
 
 @Composable
-fun ForgotPasswordScreen(padding: PaddingValues, onBackToLogin: () -> Unit) {
-    var email by remember { mutableStateOf("") }
+fun ForgotPasswordScreen(
+    padding: PaddingValues,
+    onBackToLogin: () -> Unit,
+    onCodeSent: (String) -> Unit = {},
+    viewModel: ForgotPasswordViewModel = viewModel()
+) {
+    val uiState = viewModel.uiState
+
+    // Navegar a reset password cuando el código se envía exitosamente
+    LaunchedEffect(uiState.requestedEmail) {
+        uiState.requestedEmail?.let { email ->
+            onCodeSent(email)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -69,11 +129,12 @@ fun ForgotPasswordScreen(padding: PaddingValues, onBackToLogin: () -> Unit) {
         Spacer(modifier = Modifier.height(64.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = { viewModel.onEmailChange(it) },
             label = { Text(stringResource(R.string.email_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            enabled = !uiState.isLoading,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFFCFE8B7),
                 unfocusedBorderColor = Color(0xFFCFE8B7),
@@ -85,17 +146,43 @@ fun ForgotPasswordScreen(padding: PaddingValues, onBackToLogin: () -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { /* TODO: Handle send code */ },
+            onClick = { viewModel.sendCode() },
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(50.dp),
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
         ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.send_code_button),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+
+        uiState.errorMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.send_code_button),
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        uiState.successMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = it,
+                color = Color(0xFF2E7D32),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
 
