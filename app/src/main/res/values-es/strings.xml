@@ -21,7 +21,7 @@
     <string name="forgot_password">¿Olvidó su contraseña? Haga click aquí</string>
     <string name="verification_in_progress">¿Verificación en progreso? Haga click aquí</string>
     <string name="login_button">Iniciar sesión</string>
-    <string name="no_account_register">¿No tiene cuenta? Registrese aquí</string>
+    <string name="no_account_register">¿No tiene cuenta? Regístrese aquí</string>
     <string name="click_here">aquí</string>
     <string name="register_title">Registro</string>
     <string name="register_subtitle">Por favor complete los siguientes datos</string>
@@ -32,7 +32,7 @@
     <string name="register_button">Registrarse</string>
     <string name="back_button_description">Volver</string>
     <string name="verification_title">Verificación</string>
-    <string name="verification_prompt">Por favor ingrese el código que recibio en su correo electrónico</string>
+    <string name="verification_prompt">Por favor ingrese el código que recibió en su correo electrónico</string>
     <string name="code_label">Ingrese el código</string>
     <string name="did_not_receive_code_prompt">¿No recibió el código? Haga click </string>
     <string name="resend_code_link">aquí</string>
