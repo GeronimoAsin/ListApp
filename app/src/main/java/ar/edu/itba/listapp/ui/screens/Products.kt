@@ -69,7 +69,7 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
         AddProductForm(
             onDismiss = { showAddDialog = null },
             onConfirm = { emoji, name ->
-                val index = categories.indexOf(category)
+                val index = categories.indexOfFirst { it.id == category.id }
                 if (index != -1) {
                     val newItems = categories[index].items.toMutableList().apply { add(emoji to name) }
                     categories[index] = categories[index].copy(items = newItems)
@@ -84,7 +84,7 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
             item = it.second,
             onDismiss = { showModifyDialog = null },
             onConfirm = { emoji, name ->
-                val categoryIndex = categories.indexOf(it.first)
+                val categoryIndex = categories.indexOfFirst { c -> c.id == it.first.id }
                 if (categoryIndex != -1) {
                     val itemIndex = categories[categoryIndex].items.indexOf(it.second)
                     if (itemIndex != -1) {
@@ -158,13 +158,13 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                             }
                         },
                         onDeleteList = {
-                            categories.remove(category)
+                            categories.removeIf { it.id == category.id }
                         },
                         onEditItem = { item ->
                             showModifyDialog = category to item
                         },
                         onDeleteItem = { item ->
-                            val index = categories.indexOf(category)
+                            val index = categories.indexOfFirst { it.id == category.id }
                             if (index != -1) {
                                 val newItems = categories[index].items.toMutableList().apply { remove(item) }
                                 categories[index] = categories[index].copy(items = newItems)
