@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +65,7 @@ fun CollapsibleList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFCFE8B6), RoundedCornerShape(16.dp))
+                    .clickable { expanded = !expanded }
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 if (showEditTitle) {
@@ -106,11 +108,6 @@ fun CollapsibleList(
                         backgroundColor = Color(0xFF9BD166)
                     )
                     RoundIconButton(icon = Icons.Default.Delete, onClick = onDeleteList, backgroundColor = Color(0xFF9BD166))
-                    RoundIconButton(
-                        icon = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        onClick = { expanded = !expanded },
-                        backgroundColor = Color(0xFF9BD166)
-                    )
                 }
             }
             AnimatedVisibility(visible = expanded && items.isNotEmpty()) {
