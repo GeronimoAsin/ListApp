@@ -24,7 +24,7 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
 @Composable
-fun VerificationScreen(padding: PaddingValues, onBackClick: () -> Unit) {
+fun VerificationScreen(padding: PaddingValues, onVerified: () -> Unit, onBackClick: () -> Unit = {}) {
     var code by remember { mutableStateOf("") }
 
     Column(
@@ -98,7 +98,7 @@ fun VerificationScreen(padding: PaddingValues, onBackClick: () -> Unit) {
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { /* TODO verify */ },
+            onClick = { onVerified() },
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(50.dp),
@@ -149,6 +149,6 @@ private fun clickablePart(
 @Composable
 fun VerificationScreenPreview() {
     ListappTheme {
-        VerificationScreen(padding = PaddingValues(), onBackClick = {})
+        VerificationScreen(padding = PaddingValues(), onVerified = {})
     }
 }

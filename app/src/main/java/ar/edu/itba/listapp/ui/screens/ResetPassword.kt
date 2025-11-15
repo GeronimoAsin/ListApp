@@ -27,9 +27,8 @@ import ar.edu.itba.listapp.ui.theme.ListappTheme
 @Composable
 fun ResetPasswordScreen(
     padding: PaddingValues,
-    onBackClick: () -> Unit,
-    onResendCodeClick: () -> Unit,
-    onResetPasswordClick: (code: String, newPassword: String) -> Unit
+    onPasswordReset: () -> Unit,
+    onBackClick: () -> Unit = {}
 ) {
     var verificationCode by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
@@ -126,7 +125,7 @@ fun ResetPasswordScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { onResetPasswordClick(verificationCode, newPassword) },
+            onClick = { onPasswordReset() },
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(50.dp),
@@ -147,7 +146,7 @@ fun ResetPasswordScreen(
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = MaterialTheme.colorScheme.onBackground
             ),
-            modifier = Modifier.clickable { onResendCodeClick() }
+            modifier = Modifier.clickable { /* TODO: Resend code */ }
         )
     }
 }
@@ -190,9 +189,7 @@ fun ResetPasswordScreenPreview() {
     ListappTheme {
         ResetPasswordScreen(
             padding = PaddingValues(),
-            onBackClick = {},
-            onResendCodeClick = {},
-            onResetPasswordClick = { _, _ -> }
+            onPasswordReset = {}
         )
     }
 }
