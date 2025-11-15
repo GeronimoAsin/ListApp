@@ -57,6 +57,29 @@
     <string name="emoji">Emoji</string>
     <string name="modify_product">Modificar producto</string>
     <string name="save">Guardar</string>
+    <string name="error_400">Error: Datos incorrectos</string>
+
+    <!-- Network errors -->
+    <string name="error_bad_request">Solicitud inválida. Verificá los datos ingresados.</string>
+    <string name="error_unauthorized">Credenciales incorrectas.</string>
+    <string name="error_unauthorized_detail">Credenciales incorrectas. Detalle: %1$s</string>
+    <string name="error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="error_unexpected">Error inesperado (%1$d).</string>
+    <string name="error_unexpected_detail">Error inesperado (%1$d). %2$s</string>
+    <string name="error_connection">Error de conexión: %1$s</string>
+    <string name="error_connection_default">Error de conexión. Verificá tu red y que el servidor esté corriendo.</string>
+    <string name="error_generic">Error inesperado: %1$s</string>
+    <string name="error_generic_default">Error inesperado. Intentá nuevamente.</string>
+    <string name="login_success">Inicio de sesión exitoso</string>
+    <string name="register_success">Registro exitoso. Por favor verificá tu correo electrónico.</string>
+    <string name="register_error_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="register_error_bad_request">Datos inválidos. Verificá todos los campos.</string>
+    <string name="register_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="register_error_unexpected">Error de registro (%1$d).</string>
+    <string name="register_error_connection">Error de conexión: %1$s</string>
+    <string name="register_error_connection_default">Error de conexión. Verificá tu red.</string>
+    <string name="register_error_generic">Error inesperado: %1$s</string>
+    <string name="register_error_generic_default">Error inesperado. Intentá nuevamente.</string>
 
 
 

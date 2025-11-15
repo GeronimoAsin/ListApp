@@ -30,7 +30,10 @@ import ar.edu.itba.listapp.data.network.SessionManager
 import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = AuthRepository(sessionManager = SessionManager(application))
+    private val repository = AuthRepository(
+        context = application,
+        sessionManager = SessionManager(application)
+    )
 
     var uiState by mutableStateOf(LoginUiState())
         private set
@@ -53,7 +56,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.login(uiState.email, uiState.password)) {
                 is LoginResult.Success -> {
-                    uiState = uiState.copy(isLoading = false, successMessage = "Inicio de sesión exitoso")
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        successMessage = getApplication<Application>().getString(R.string.login_success)
+                    )
                 }
                 is LoginResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)

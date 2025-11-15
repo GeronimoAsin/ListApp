@@ -1,5 +1,6 @@
 package ar.edu.itba.listapp.ui.screens
 
+import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,17 +15,110 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ar.edu.itba.listapp.R
+import ar.edu.itba.listapp.data.network.AuthRepository
+import ar.edu.itba.listapp.data.network.RegisterResult
+import ar.edu.itba.listapp.data.network.SessionManager
 import ar.edu.itba.listapp.ui.theme.ListappTheme
+import kotlinx.coroutines.launch
+
+class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = AuthRepository(
+        context = application,
+        sessionManager = SessionManager(application)
+    )
+
+    var uiState by mutableStateOf(RegisterUiState())
+        private set
+
+    fun onFirstNameChange(value: String) {
+        uiState = uiState.copy(firstName = value)
+    }
+
+    fun onLastNameChange(value: String) {
+        uiState = uiState.copy(lastName = value)
+    }
+
+    fun onNicknameChange(value: String) {
+        uiState = uiState.copy(nickname = value)
+    }
+
+    fun onEmailChange(value: String) {
+        uiState = uiState.copy(email = value)
+    }
+
+    fun onPasswordChange(value: String) {
+        uiState = uiState.copy(password = value)
+    }
+
+    fun onRepeatPasswordChange(value: String) {
+        uiState = uiState.copy(repeatPassword = value)
+    }
+
+    fun register() {
+        if (uiState.isLoading) return
+
+        // Validación básica
+        if (uiState.password != uiState.repeatPassword) {
+            uiState = uiState.copy(errorMessage = getApplication<Application>().getString(R.string.register_error_password_mismatch))
+            return
+        }
+
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            when (val result = repository.register(
+                name = uiState.firstName,
+                surname = uiState.lastName,
+                email = uiState.email,
+                password = uiState.password,
+                nickname = uiState.nickname
+            )) {
+                is RegisterResult.Success -> {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        successMessage = getApplication<Application>().getString(R.string.register_success),
+                        registeredEmail = result.email
+                    )
+                }
+                is RegisterResult.Error -> {
+                    uiState = uiState.copy(isLoading = false, errorMessage = result.message)
+                }
+            }
+        }
+    }
+}
+
+data class RegisterUiState(
+    val firstName: String = "",
+    val lastName: String = "",
+    val nickname: String = "",
+    val email: String = "",
+    val password: String = "",
+    val repeatPassword: String = "",
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null,
+    val registeredEmail: String? = null
+)
 
 @Composable
-fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var repeatPassword by remember { mutableStateOf("") }
+fun RegisterScreen(
+    padding: PaddingValues,
+    onLoginClick: () -> Unit,
+    onRegisterSuccess: () -> Unit = {},
+    viewModel: RegisterViewModel = viewModel()
+) {
+    val uiState = viewModel.uiState
+
+    // Navegar a verification cuando el registro es exitoso
+    LaunchedEffect(uiState.successMessage) {
+        if (uiState.successMessage != null) {
+            onRegisterSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -64,8 +158,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
 
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
-                value = firstName,
-                onValueChange = { firstName = it },
+                value = uiState.firstName,
+                onValueChange = { viewModel.onFirstNameChange(it) },
                 label = { Text(stringResource(R.string.first_name_placeholder)) },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -77,8 +171,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
+                value = uiState.lastName,
+                onValueChange = { viewModel.onLastNameChange(it) },
                 label = { Text(stringResource(R.string.last_name_placeholder)) },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -93,8 +187,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = nickname,
-            onValueChange = { nickname = it },
+            value = uiState.nickname,
+            onValueChange = { viewModel.onNicknameChange(it) },
             label = { Text(stringResource(R.string.nickname_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
@@ -108,8 +202,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = { viewModel.onEmailChange(it) },
             label = { Text(stringResource(R.string.email_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
@@ -123,8 +217,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.password,
+            onValueChange = { viewModel.onPasswordChange(it) },
             label = { Text(stringResource(R.string.password_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
@@ -139,8 +233,8 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = repeatPassword,
-            onValueChange = { repeatPassword = it },
+            value = uiState.repeatPassword,
+            onValueChange = { viewModel.onRepeatPasswordChange(it) },
             label = { Text(stringResource(R.string.repeat_password_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
@@ -155,17 +249,43 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { /* TODO register */ },
+            onClick = { viewModel.register() },
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(50.dp),
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
         ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.register_button),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+
+        uiState.errorMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.register_button),
-                fontSize = 18.sp ,
-                color = MaterialTheme.colorScheme.onBackground
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        uiState.successMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = it,
+                color = Color(0xFF2E7D32),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
 
@@ -177,6 +297,10 @@ fun RegisterScreen(padding: PaddingValues, onLoginClick: () -> Unit) {
 @Composable
 fun RegisterScreenPreview() {
     ListappTheme {
-        RegisterScreen(padding = PaddingValues(), onLoginClick = {})
+        RegisterScreen(
+            padding = PaddingValues(),
+            onLoginClick = {},
+            onRegisterSuccess = {}
+        )
     }
 }

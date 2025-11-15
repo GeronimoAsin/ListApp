@@ -57,6 +57,28 @@
     <string name="emoji">Emoji</string>
     <string name="modify_product">Modify product</string>
     <string name="save">Save</string>
+    <string name="error_400">Error: Incorrect data</string>
 
+    <!-- Network errors -->
+    <string name="error_bad_request">Invalid request. Please verify the entered data.</string>
+    <string name="error_unauthorized">Incorrect credentials.</string>
+    <string name="error_unauthorized_detail">Incorrect credentials. Detail: %1$s</string>
+    <string name="error_server">Server error. Please try again later.</string>
+    <string name="error_unexpected">Unexpected error (%1$d).</string>
+    <string name="error_unexpected_detail">Unexpected error (%1$d). %2$s</string>
+    <string name="error_connection">Connection error: %1$s</string>
+    <string name="error_connection_default">Connection error. Check your network and verify the server is running.</string>
+    <string name="error_generic">Unexpected error: %1$s</string>
+    <string name="error_generic_default">Unexpected error. Please try again.</string>
+    <string name="login_success">Login successful</string>
+    <string name="register_success">Registration successful. Please verify your email.</string>
+    <string name="register_error_password_mismatch">Passwords do not match.</string>
+    <string name="register_error_bad_request">Invalid data. Please check all fields.</string>
+    <string name="register_error_server">Server error. Please try again later.</string>
+    <string name="register_error_unexpected">Registration error (%1$d).</string>
+    <string name="register_error_connection">Connection error: %1$s</string>
+    <string name="register_error_connection_default">Connection error. Check your network.</string>
+    <string name="register_error_generic">Unexpected error: %1$s</string>
+    <string name="register_error_generic_default">Unexpected error. Please try again.</string>
 
 </resources>

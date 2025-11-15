@@ -62,7 +62,8 @@ fun ListappApp() {
             ) { padding ->
                 RegisterScreen(
                     padding = padding,
-                    onLoginClick = { currentScreen = AppScreen.LOGIN }
+                    onLoginClick = { currentScreen = AppScreen.LOGIN },
+                    onRegisterSuccess = { currentScreen = AppScreen.VERIFICATION }
                 )
             }
         }
