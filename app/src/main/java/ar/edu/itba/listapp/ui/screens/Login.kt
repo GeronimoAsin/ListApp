@@ -3,6 +3,7 @@ package ar.edu.itba.listapp.ui.screens
 import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,14 +20,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ar.edu.itba.listapp.R
-import ar.edu.itba.listapp.ui.theme.ListappTheme
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.data.network.AuthRepository
 import ar.edu.itba.listapp.data.network.LoginResult
 import ar.edu.itba.listapp.data.network.SessionManager
+import ar.edu.itba.listapp.ui.theme.ListappTheme
 import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
@@ -85,136 +86,152 @@ fun LoginScreen(
 ) {
     val uiState = viewModel.uiState
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(74.dp))
+        item { Spacer(modifier = Modifier.height(74.dp)) }
 
-        Text(
-            text = stringResource(R.string.login_title),
-            style = MaterialTheme.typography.titleLarge,
-            fontSize = 48.sp
-        )
-
-        Spacer(modifier = Modifier.height(64.dp))
-
-        OutlinedTextField(
-            value = uiState.email,
-            onValueChange = { viewModel.onEmailChange(it) },
-            label = { Text(stringResource(R.string.email_placeholder)) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFCFE8B7),
-                unfocusedBorderColor = Color(0xFFCFE8B7),
-                focusedContainerColor = Color(0xFFCFE8B7),
-                unfocusedContainerColor = Color(0xFFCFE8B7)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = uiState.password,
-            onValueChange = { viewModel.onPasswordChange(it) },
-            label = { Text(stringResource(R.string.password_placeholder)) },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFCFE8B7),
-                unfocusedBorderColor = Color(0xFFCFE8B7),
-                focusedContainerColor = Color(0xFFCFE8B7),
-                unfocusedContainerColor = Color(0xFFCFE8B7)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = clickablePart(
-                stringResource(R.string.forgot_password),
-                stringResource(R.string.click_here),
-                tag = "forgot"
-            ),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.clickable {
-                onForgotPasswordClick()
-            }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = clickablePart(
-                stringResource(R.string.verification_in_progress),
-                stringResource(R.string.click_here),
-                tag = "verification"
-            ),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.clickable {
-                onVerificationClick()
-            }
-        )
-
-        Spacer(modifier = Modifier.height(64.dp))
-
-        Button(
-            onClick = { viewModel.login(onLoginSuccess) },
-            enabled = !uiState.isLoading,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .height(50.dp),
-            shape = RoundedCornerShape(20),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.login_button),
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
-        uiState.errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
+        item {
             Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
+                text = stringResource(R.string.login_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 48.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        item { Spacer(modifier = Modifier.height(64.dp)) }
 
-        Text(
-            text = clickablePart(
-                stringResource(R.string.no_account_register),
-                stringResource(R.string.click_here),
-                tag = "register"
-            ),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.clickable {
-                onRegisterClick()
+        item {
+            OutlinedTextField(
+                value = uiState.email,
+                onValueChange = { viewModel.onEmailChange(it) },
+                label = { Text(stringResource(R.string.email_placeholder)) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFCFE8B7),
+                    unfocusedBorderColor = Color(0xFFCFE8B7),
+                    focusedContainerColor = Color(0xFFCFE8B7),
+                    unfocusedContainerColor = Color(0xFFCFE8B7)
+                )
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+
+        item {
+            OutlinedTextField(
+                value = uiState.password,
+                onValueChange = { viewModel.onPasswordChange(it) },
+                label = { Text(stringResource(R.string.password_placeholder)) },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFCFE8B7),
+                    unfocusedBorderColor = Color(0xFFCFE8B7),
+                    focusedContainerColor = Color(0xFFCFE8B7),
+                    unfocusedContainerColor = Color(0xFFCFE8B7)
+                )
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(32.dp)) }
+
+        item {
+            Text(
+                text = clickablePart(
+                    stringResource(R.string.forgot_password),
+                    stringResource(R.string.click_here),
+                    tag = "forgot"
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
+                modifier = Modifier.clickable {
+                    onForgotPasswordClick()
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+
+        item {
+            Text(
+                text = clickablePart(
+                    stringResource(R.string.verification_in_progress),
+                    stringResource(R.string.click_here),
+                    tag = "verification"
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
+                modifier = Modifier.clickable {
+                    onVerificationClick()
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(64.dp)) }
+
+        item {
+            Button(
+                onClick = { viewModel.login(onLoginSuccess) },
+                enabled = !uiState.isLoading,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(20),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.login_button),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
-        )
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        item {
+            uiState.errorMessage?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(36.dp)) }
+
+        item {
+            Text(
+                text = clickablePart(
+                    stringResource(R.string.no_account_register),
+                    stringResource(R.string.click_here),
+                    tag = "register"
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
+                modifier = Modifier.clickable {
+                    onRegisterClick()
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
 
@@ -249,7 +266,8 @@ private fun clickablePart(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(showBackground = true, device = "spec:width=891dp,height=411dp")
 @Composable
 fun LoginScreenPreview() {
     ListappTheme {

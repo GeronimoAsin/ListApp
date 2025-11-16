@@ -3,6 +3,7 @@ package ar.edu.itba.listapp.ui.screens
 import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -115,116 +116,130 @@ fun VerificationScreen(
         viewModel.setUserEmail(userEmail)
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(74.dp))
+        item { Spacer(modifier = Modifier.height(74.dp)) }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back_button_description)
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.verification_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 32.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(64.dp))
-
-        Text(
-            text = stringResource(R.string.verification_prompt),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        Spacer(modifier = Modifier.height(64.dp))
-
-        OutlinedTextField(
-            value = uiState.code,
-            onValueChange = { viewModel.onCodeChange(it) },
-            label = { Text(stringResource(R.string.code_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFCFE8B7),
-                unfocusedBorderColor = Color(0xFFCFE8B7),
-                focusedContainerColor = Color(0xFFCFE8B7),
-                unfocusedContainerColor = Color(0xFFCFE8B7)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = clickablePart(
-                stringResource(R.string.did_not_receive_code_prompt),
-                stringResource(R.string.resend_code_link),
-                tag = "resend"
-            ),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.clickable(enabled = !uiState.isResending) {
-                viewModel.resendCode()
-            }
-        )
-
-        Spacer(modifier = Modifier.height(64.dp))
-
-        Button(
-            onClick = { viewModel.verify(onVerified) },
-            enabled = !uiState.isLoading,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .height(50.dp),
-            shape = RoundedCornerShape(20),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    strokeWidth = 2.dp
-                )
-            } else {
+        item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button_description)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.verify_button),
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onBackground
+                    text = stringResource(R.string.verification_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 32.sp
                 )
             }
         }
 
-        uiState.errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
+        item { Spacer(modifier = Modifier.height(64.dp)) }
+
+        item {
             Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
+                text = stringResource(R.string.verification_prompt),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
-        uiState.resendMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
-                style = MaterialTheme.typography.bodyMedium
+
+
+        item { Spacer(modifier = Modifier.height(64.dp)) }
+
+        item {
+            OutlinedTextField(
+                value = uiState.code,
+                onValueChange = { viewModel.onCodeChange(it) },
+                label = { Text(stringResource(R.string.code_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFCFE8B7),
+                    unfocusedBorderColor = Color(0xFFCFE8B7),
+                    focusedContainerColor = Color(0xFFCFE8B7),
+                    unfocusedContainerColor = Color(0xFFCFE8B7)
+                )
             )
+        }
+
+        item { Spacer(modifier = Modifier.height(32.dp)) }
+
+        item {
+            Text(
+                text = clickablePart(
+                    stringResource(R.string.did_not_receive_code_prompt),
+                    stringResource(R.string.resend_code_link),
+                    tag = "resend"
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
+                modifier = Modifier.clickable(enabled = !uiState.isResending) {
+                    viewModel.resendCode()
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(64.dp)) }
+
+        item {
+            Button(
+                onClick = { viewModel.verify(onVerified) },
+                enabled = !uiState.isLoading,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(20),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CC94F))
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.verify_button),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        }
+
+        item {
+            uiState.errorMessage?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        item {
+            uiState.resendMessage?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = it,
+                    color = Color(0xFF2E7D32),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }
@@ -260,7 +275,8 @@ private fun clickablePart(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(showBackground = true, device = "spec:width=891dp,height=411dp")
 @Composable
 fun VerificationScreenPreview() {
     ListappTheme {
