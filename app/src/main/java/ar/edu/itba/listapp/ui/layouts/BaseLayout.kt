@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.ui.composables.AdaptiveNavBar
 import ar.edu.itba.listapp.ui.theme.LightGreen
@@ -23,24 +25,23 @@ import ar.edu.itba.listapp.ui.theme.LightGreen
 enum class AppDestination(
     @StringRes val label: Int,
     val icon: ImageVector,
+    val route: String
 ) {
-    LISTS(R.string.lists, Icons.Default.List),
-    PRODUCTS(R.string.products, Icons.Default.ShoppingCart),
-    PANTRY(R.string.pantry, Icons.Default.ShoppingBasket),
-    PROFILE(R.string.profile, Icons.Default.Person),
+    LISTS(R.string.lists, Icons.Default.List, "lists"),
+    PRODUCTS(R.string.products, Icons.Default.ShoppingCart, "products"),
+    PANTRY(R.string.pantry, Icons.Default.ShoppingBasket, "pantry"),
+    PROFILE(R.string.profile, Icons.Default.Person, "profile"),
 }
 
 
 @Composable
 fun BaseLayout(
-    currentDestination: AppDestination,
-    onDestinationChanged: (AppDestination) -> Unit,
+    navController: NavController,
     modifier: Modifier = Modifier,
     content: @Composable (innerPadding: androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
     AdaptiveNavBar(
-        currentDestination = currentDestination,
-        onDestinationChanged = onDestinationChanged,
+        navController = navController,
         modifier = modifier
     ) {
         Scaffold(
@@ -55,9 +56,9 @@ fun BaseLayout(
 @Preview
 @Composable
 private fun BaseLayoutPreview() {
+    val navController = rememberNavController()
     BaseLayout(
-        currentDestination = AppDestination.LISTS,
-        onDestinationChanged = {},
+        navController = navController,
     ) { padding ->
         // ...content preview placeholder...
         androidx.compose.material3.Text(
