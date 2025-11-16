@@ -78,4 +78,8 @@ object NetworkModule {
     val productService: ProductService by lazy {
         retrofit.create(ProductService::class.java)
     }
+
+    val pantryService: PantryService by lazy {
+        retrofit.create(PantryService::class.java)
+    }
 }
