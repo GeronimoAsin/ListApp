@@ -13,9 +13,11 @@ import ar.edu.itba.listapp.data.model.ResetPasswordResponse
 import ar.edu.itba.listapp.data.model.UserProfile
 import ar.edu.itba.listapp.data.model.VerifyAccountRequest
 import ar.edu.itba.listapp.data.model.VerifyAccountResponse
+import ar.edu.itba.listapp.data.model.UpdateProfileRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Query
 
 interface AuthService {
@@ -45,5 +47,7 @@ interface AuthService {
 
     @POST("users/change-password")
     suspend fun changePassword(@Body body: ChangePasswordRequest): ChangePasswordResponse
-}
 
+    @PUT("users/profile")
+    suspend fun updateProfile(@Body body: UpdateProfileRequest)
+}

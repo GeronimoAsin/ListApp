@@ -13,3 +13,9 @@ data class UserProfile(
     val createdAt: String
 )
 
+@Serializable
+data class UpdateProfileRequest(
+    val name: String,
+    val surname: String,
+    val metadata: Map<String, String>
+)

@@ -131,6 +131,7 @@
     <string name="profile_name_label">Name:</string>
     <string name="profile_surname_label">Surname:</string>
     <string name="profile_nickname_label">Nickname:</string>
+    <string name="profile_edit_profile_button">Edit Profile</string>
     <string name="profile_change_password_button">Change Password</string>
     <string name="profile_logout_button">Log Out</string>
     <string name="profile_error_unauthorized">Session expired. Please log in again.</string>

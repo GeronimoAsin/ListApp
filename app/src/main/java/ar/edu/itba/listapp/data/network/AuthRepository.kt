@@ -325,4 +325,13 @@ class AuthRepository(
             ChangePasswordResult.Error(message)
         }
     }
+
+    suspend fun updateProfile(name: String, surname: String, metadata: Map<String, String>): Result<Unit> = withContext(dispatcher) {
+        try {
+            service.updateProfile(ar.edu.itba.listapp.data.model.UpdateProfileRequest(name, surname, metadata))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -120,6 +120,7 @@
     <string name="profile_name_label">Nombre:</string>
     <string name="profile_surname_label">Apellido:</string>
     <string name="profile_nickname_label">Apodo:</string>
+    <string name="profile_edit_profile_button">Editar Perfil</string>
     <string name="profile_change_password_button">Cambiar contraseña</string>
     <string name="profile_logout_button">Cerrar sesión</string>
     <string name="profile_error_unauthorized">Sesión expirada. Por favor iniciá sesión nuevamente.</string>
