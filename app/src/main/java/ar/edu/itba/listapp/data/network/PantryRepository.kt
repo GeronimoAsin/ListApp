@@ -130,6 +130,7 @@ class PantryRepository(
             GetPantryResult.Success(pantry)
         } catch (httpException: HttpException) {
             val message = when (httpException.code()) {
+                400 -> context.getString(R.string.pantry_error_bad_request)
                 401 -> context.getString(R.string.pantry_error_unauthorized)
                 404 -> context.getString(R.string.pantry_error_not_found)
                 500 -> context.getString(R.string.pantry_error_server)
@@ -158,6 +159,7 @@ class PantryRepository(
             val message = when (httpException.code()) {
                 400 -> context.getString(R.string.pantry_error_bad_request)
                 401 -> context.getString(R.string.pantry_error_unauthorized)
+                403 -> context.getString(R.string.pantry_error_forbidden)
                 404 -> context.getString(R.string.pantry_error_not_found)
                 409 -> context.getString(R.string.pantry_error_conflict)
                 500 -> context.getString(R.string.pantry_error_server)
@@ -179,7 +181,9 @@ class PantryRepository(
             DeletePantryResult.Success
         } catch (httpException: HttpException) {
             val message = when (httpException.code()) {
+                400 -> context.getString(R.string.pantry_error_bad_request)
                 401 -> context.getString(R.string.pantry_error_unauthorized)
+                403 -> context.getString(R.string.pantry_error_forbidden)
                 404 -> context.getString(R.string.pantry_error_not_found)
                 500 -> context.getString(R.string.pantry_error_server)
                 else -> context.getString(R.string.pantry_error_unexpected, httpException.code())

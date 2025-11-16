@@ -188,6 +188,7 @@
     <!-- Pantry error messages -->
     <string name="pantry_error_bad_request">Invalid pantry data. Please check all fields.</string>
     <string name="pantry_error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="pantry_error_forbidden">Forbidden. You don\'t have permission to perform this action.</string>
     <string name="pantry_error_conflict">Pantry already exists.</string>
     <string name="pantry_error_not_found">Pantry not found.</string>
     <string name="pantry_error_server">Server error. Please try again later.</string>
