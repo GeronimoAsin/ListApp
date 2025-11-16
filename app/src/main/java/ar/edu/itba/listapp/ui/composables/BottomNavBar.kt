@@ -60,8 +60,8 @@ fun AdaptiveNavBar(
                                 selected = currentRoute == destination.route,
                                 onClick = {
                                     navController.navigate(destination.route) {
-                                        popUpTo(navController.graph.startDestinationId)
                                         launchSingleTop = true
+                                        restoreState = true
                                     }
                                 },
                                 colors = NavigationRailItemDefaults.colors(
@@ -97,8 +97,8 @@ fun AdaptiveNavBar(
                             selected = currentRoute == destination.route,
                             onClick = {
                                 navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.startDestinationId)
                                     launchSingleTop = true
+                                    restoreState = true
                                 }
                             },
                             colors = NavigationBarItemDefaults.colors(

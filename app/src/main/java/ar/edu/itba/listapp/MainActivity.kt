@@ -1,3 +1,4 @@
+
 package ar.edu.itba.listapp
 
 import android.os.Bundle
@@ -11,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ar.edu.itba.listapp.data.network.NetworkModule
+import ar.edu.itba.listapp.ui.layouts.AppHistory
 import ar.edu.itba.listapp.ui.layouts.BaseLayout
 import ar.edu.itba.listapp.ui.screens.*
 import ar.edu.itba.listapp.ui.theme.LightGreen
@@ -20,6 +22,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        AppHistory.history.clear()
 
         // Initialize NetworkModule with the context
         NetworkModule.initialize(applicationContext)
@@ -113,7 +117,10 @@ fun MainApp(navController: androidx.navigation.NavController) {
                 ProfileScreen(
                     padding = innerPadding,
                     onChangePassword = { navController.navigate("change_password") },
-                    onLogout = { navController.navigate("login") { popUpTo("main_app") { inclusive = true } } }
+                    onLogout = {
+                        AppHistory.history.clear()
+                        navController.navigate("login") { popUpTo("main_app") { inclusive = true } }
+                    }
                 )
             }
         }

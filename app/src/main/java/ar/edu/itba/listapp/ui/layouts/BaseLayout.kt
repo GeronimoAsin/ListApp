@@ -1,6 +1,9 @@
+
 package ar.edu.itba.listapp.ui.layouts
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -8,13 +11,10 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -23,11 +23,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ar.edu.itba.listapp.R
+import ar.edu.itba.listapp.ui.History
 import ar.edu.itba.listapp.ui.composables.AdaptiveNavBar
 import ar.edu.itba.listapp.ui.theme.LightGreen
 
+object AppHistory {
+    val history = History()
+}
 
-//destinaciones de la app
 enum class AppDestination(
     @StringRes val label: Int,
     val icon: ImageVector,
@@ -36,20 +39,29 @@ enum class AppDestination(
     LISTS(R.string.lists, Icons.Default.List, "lists"),
     PRODUCTS(R.string.products, Icons.Default.ShoppingCart, "products"),
     PANTRY(R.string.pantry, Icons.Default.ShoppingBasket, "pantry"),
-    PROFILE(R.string.profile, Icons.Default.Person, "profile"),
-}
+    PROFILE(R.string.profile, Icons.Default.Person, "profile");
 
+    fun shouldAddToHistory(): Boolean {
+        return this != PROFILE
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseLayout(
     navController: NavController,
     modifier: Modifier = Modifier,
-    content: @Composable (innerPadding: androidx.compose.foundation.layout.PaddingValues) -> Unit,
+    content: @Composable (innerPadding: PaddingValues) -> Unit,
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentDestination = AppDestination.entries.find { it.route == currentRoute }
+
+    if (currentDestination?.shouldAddToHistory() == true) {
+        AppHistory.history.push(currentDestination.route)
+    }
+
+    HandleBackPress(navController)
 
     AdaptiveNavBar(
         navController = navController,
@@ -71,6 +83,22 @@ fun BaseLayout(
     }
 }
 
+@Composable
+private fun HandleBackPress(navController: NavController) {
+    val history = remember { AppHistory.history }
+
+    BackHandler(enabled = !history.isEmpty()) {
+        history.pop()
+        val previousRoute = history.peek()
+        if (previousRoute != null) {
+            navController.navigate(previousRoute) {
+                popUpTo(navController.graph.startDestinationId)
+                launchSingleTop = true
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun BaseLayoutPreview() {
@@ -79,7 +107,7 @@ private fun BaseLayoutPreview() {
         navController = navController,
     ) { padding ->
         // ...content preview placeholder...
-        androidx.compose.material3.Text(
+        Text(
             text = "Preview content",
             modifier = Modifier.padding(padding)
         )
