@@ -203,17 +203,6 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
                 .padding(horizontal = 16.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Title
-                Text(
-                    text = stringResource(R.string.products),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = 36.sp
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // Search Bar
                 SearchBar(
                     value = searchText,

@@ -138,12 +138,6 @@ fun ProfileScreen(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = stringResource(R.string.profile_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontSize = 48.sp
-                    )
-                    Spacer(modifier = Modifier.height(48.dp))
                     ProfileInfo(uiState, viewModel)
                 }
                 Column(
@@ -167,12 +161,6 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(74.dp))
-                Text(
-                    text = stringResource(R.string.profile_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = 48.sp
-                )
-                Spacer(modifier = Modifier.height(48.dp))
                 ProfileInfo(uiState, viewModel)
                 Spacer(modifier = Modifier.height(64.dp))
                 ProfileButtons(
