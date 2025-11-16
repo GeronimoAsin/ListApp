@@ -50,16 +50,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         uiState = uiState.copy(errorMessage = null)
     }
 
-    fun login() {
+    fun login(onLoginSuccess: () -> Unit) {
         if (uiState.isLoading) return
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.login(uiState.email, uiState.password)) {
                 is LoginResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.login_success)
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onLoginSuccess()
                 }
                 is LoginResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -73,13 +71,12 @@ data class LoginUiState(
     val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null
+    val errorMessage: String? = null
 )
 
 @Composable
 fun LoginScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onForgotPasswordClick: () -> Unit,
     onVerificationClick: () -> Unit,
     onRegisterClick: () -> Unit,
@@ -87,13 +84,6 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-
-    // Navegar a main app cuando login es exitoso
-    LaunchedEffect(uiState.successMessage) {
-        if (uiState.successMessage != null) {
-            onLoginSuccess()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -176,7 +166,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { viewModel.login() },
+            onClick = { viewModel.login(onLoginSuccess) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -204,14 +194,6 @@ fun LoginScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -272,7 +254,6 @@ private fun clickablePart(
 fun LoginScreenPreview() {
     ListappTheme {
         LoginScreen(
-            padding = PaddingValues(),
             onForgotPasswordClick = {},
             onVerificationClick = {},
             onRegisterClick = {},

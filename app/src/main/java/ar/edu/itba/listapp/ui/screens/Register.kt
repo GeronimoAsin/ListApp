@@ -58,7 +58,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(repeatPassword = value)
     }
 
-    fun register() {
+    fun register(onRegisterSuccess: (String) -> Unit) {
         if (uiState.isLoading) return
 
         // Validación básica
@@ -77,11 +77,8 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 nickname = uiState.nickname
             )) {
                 is RegisterResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.register_success),
-                        registeredEmail = result.email
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onRegisterSuccess(result.email)
                 }
                 is RegisterResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -99,26 +96,17 @@ data class RegisterUiState(
     val password: String = "",
     val repeatPassword: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null,
-    val registeredEmail: String? = null
+    val errorMessage: String? = null
 )
 
 @Composable
 fun RegisterScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onLoginClick: () -> Unit,
-    onRegisterSuccess: (String) -> Unit = {},
+    onRegisterSuccess: (String) -> Unit,
     viewModel: RegisterViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-
-    // Navegar a verification cuando el registro es exitoso
-    LaunchedEffect(uiState.registeredEmail) {
-        uiState.registeredEmail?.let { email ->
-            onRegisterSuccess(email)
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -249,7 +237,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { viewModel.register() },
+            onClick = { viewModel.register(onRegisterSuccess) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -277,14 +265,6 @@ fun RegisterScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

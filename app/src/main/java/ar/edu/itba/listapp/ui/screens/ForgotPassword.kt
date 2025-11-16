@@ -44,17 +44,14 @@ class ForgotPasswordViewModel(application: Application) : AndroidViewModel(appli
         uiState = uiState.copy(email = value)
     }
 
-    fun sendCode() {
+    fun sendCode(onCodeSent: (String) -> Unit) {
         if (uiState.isLoading) return
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.forgotPassword(uiState.email)) {
                 is ForgotPasswordResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.forgot_password_success),
-                        requestedEmail = result.email
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onCodeSent(result.email)
                 }
                 is ForgotPasswordResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -67,26 +64,17 @@ class ForgotPasswordViewModel(application: Application) : AndroidViewModel(appli
 data class ForgotPasswordUiState(
     val email: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null,
-    val requestedEmail: String? = null
+    val errorMessage: String? = null
 )
 
 @Composable
 fun ForgotPasswordScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onBackToLogin: () -> Unit,
-    onCodeSent: (String) -> Unit = {},
+    onCodeSent: (String) -> Unit,
     viewModel: ForgotPasswordViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-
-    // Navegar a reset password cuando el código se envía exitosamente
-    LaunchedEffect(uiState.requestedEmail) {
-        uiState.requestedEmail?.let { email ->
-            onCodeSent(email)
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -146,7 +134,7 @@ fun ForgotPasswordScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { viewModel.sendCode() },
+            onClick = { viewModel.sendCode(onCodeSent) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -174,14 +162,6 @@ fun ForgotPasswordScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -228,6 +208,6 @@ private fun clickablePart(
 @Composable
 fun ForgotPasswordScreenPreview() {
     ListappTheme {
-        ForgotPasswordScreen(padding = PaddingValues(), onBackToLogin = {})
+        ForgotPasswordScreen(onBackToLogin = {}, onCodeSent = {})
     }
 }

@@ -43,7 +43,7 @@ class VerificationViewModel(application: Application) : AndroidViewModel(applica
 
     private var userEmail: String? = null
 
-    fun setUserEmail(email: String) {
+    fun setUserEmail(email: String?) {
         userEmail = email
     }
 
@@ -51,17 +51,14 @@ class VerificationViewModel(application: Application) : AndroidViewModel(applica
         uiState = uiState.copy(code = value)
     }
 
-    fun verify() {
+    fun verify(onVerified: () -> Unit) {
         if (uiState.isLoading) return
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.verifyAccount(uiState.code)) {
                 is VerifyAccountResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.verify_success),
-                        isVerified = true
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onVerified()
                 }
                 is VerifyAccountResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -100,31 +97,22 @@ data class VerificationUiState(
     val isLoading: Boolean = false,
     val isResending: Boolean = false,
     val errorMessage: String? = null,
-    val successMessage: String? = null,
-    val resendMessage: String? = null,
-    val isVerified: Boolean = false
+    val resendMessage: String? = null
 )
 
 @Composable
 fun VerificationScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onVerified: () -> Unit,
-    onBackClick: () -> Unit = {},
-    userEmail: String? = null,
+    onBackClick: () -> Unit,
+    userEmail: String?,
     viewModel: VerificationViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
 
-    // Establecer el email del usuario si está disponible
+    // Set user email if available
     LaunchedEffect(userEmail) {
-        userEmail?.let { viewModel.setUserEmail(it) }
-    }
-
-    // Navegar cuando la verificación es exitosa
-    LaunchedEffect(uiState.isVerified) {
-        if (uiState.isVerified) {
-            onVerified()
-        }
+        viewModel.setUserEmail(userEmail)
     }
 
     Column(
@@ -199,7 +187,7 @@ fun VerificationScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         Button(
-            onClick = { viewModel.verify() },
+            onClick = { viewModel.verify(onVerified) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -227,14 +215,6 @@ fun VerificationScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -284,6 +264,6 @@ private fun clickablePart(
 @Composable
 fun VerificationScreenPreview() {
     ListappTheme {
-        VerificationScreen(padding = PaddingValues(), onVerified = {})
+        VerificationScreen(padding = PaddingValues(), onVerified = {}, onBackClick = {}, userEmail = null)
     }
 }

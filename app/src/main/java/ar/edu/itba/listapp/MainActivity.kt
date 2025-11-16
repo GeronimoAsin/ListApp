@@ -10,10 +10,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import ar.edu.itba.listapp.data.network.NetworkModule
 import ar.edu.itba.listapp.ui.layouts.AppDestination
 import ar.edu.itba.listapp.ui.layouts.BaseLayout
 import ar.edu.itba.listapp.ui.screens.*
-import ar.edu.itba.listapp.data.network.NetworkModule
 import ar.edu.itba.listapp.ui.theme.LightGreen
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
@@ -22,7 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Inicializar NetworkModule con el contexto
+        // Initialize NetworkModule with the context
         NetworkModule.initialize(applicationContext)
 
         setContent {
@@ -33,99 +36,70 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class AppScreen {
-    LOGIN,
-    MAIN_APP,
-    REGISTER,
-    FORGOT_PASSWORD,
-    VERIFICATION,
-    RESET_PASSWORD,
-    CHANGE_PASSWORD
-}
-
 @Composable
 fun ListappApp() {
-    var currentScreen by rememberSaveable { mutableStateOf(AppScreen.LOGIN) }
+    val navController = rememberNavController()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestination.LISTS) }
-    var userEmail by rememberSaveable { mutableStateOf<String?>(null) }
 
-    when (currentScreen) {
-        AppScreen.LOGIN -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 LoginScreen(
                     padding = padding,
-                    onForgotPasswordClick = { currentScreen = AppScreen.FORGOT_PASSWORD },
-                    onVerificationClick = { currentScreen = AppScreen.VERIFICATION },
-                    onRegisterClick = { currentScreen = AppScreen.REGISTER },
-                    onLoginSuccess = { currentScreen = AppScreen.MAIN_APP }
+                    onForgotPasswordClick = { navController.navigate("forgot_password") },
+                    onVerificationClick = { navController.navigate("verification") },
+                    onRegisterClick = { navController.navigate("register") },
+                    onLoginSuccess = { navController.navigate("main_app") }
                 )
             }
         }
-        AppScreen.REGISTER -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+        composable("register") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 RegisterScreen(
-                    padding = padding,
-                    onLoginClick = { currentScreen = AppScreen.LOGIN },
-                    onRegisterSuccess = { email ->
-                        userEmail = email
-                        currentScreen = AppScreen.VERIFICATION
-                    }
+                    padding,
+                    onLoginClick = { navController.navigate("login") },
+                    onRegisterSuccess = { navController.navigate("verification") }
                 )
             }
         }
-        AppScreen.FORGOT_PASSWORD -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+        composable("forgot_password") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 ForgotPasswordScreen(
                     padding = padding,
-                    onBackToLogin = { currentScreen = AppScreen.LOGIN },
-                    onCodeSent = { email ->
-                        userEmail = email
-                        currentScreen = AppScreen.RESET_PASSWORD
-                    }
+                    onBackToLogin = { navController.navigate("login") },
+                    onCodeSent = { navController.navigate("reset_password") }
                 )
             }
         }
-        AppScreen.VERIFICATION -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+        composable("verification") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 VerificationScreen(
                     padding = padding,
-                    onVerified = { currentScreen = AppScreen.LOGIN },
-                    onBackClick = { currentScreen = AppScreen.LOGIN },
-                    userEmail = userEmail
+                    onVerified = { navController.navigate("login") },
+                    onBackClick = { navController.navigate("login") },
+                    userEmail = null
                 )
             }
         }
-        AppScreen.RESET_PASSWORD -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+        composable("reset_password") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 ResetPasswordScreen(
                     padding = padding,
-                    onPasswordReset = { currentScreen = AppScreen.LOGIN },
-                    onBackClick = { currentScreen = AppScreen.LOGIN }
+                    onPasswordReset = { navController.navigate("login") },
+                    onBackClick = { navController.navigate("login") }
                 )
             }
         }
-        AppScreen.CHANGE_PASSWORD -> {
-            Scaffold(
-                containerColor = LightGreen
-            ) { padding ->
+        composable("change_password") {
+            Scaffold(containerColor = LightGreen) { padding ->
                 ChangePasswordScreen(
                     padding = padding,
-                    onPasswordChanged = { currentScreen = AppScreen.MAIN_APP },
-                    onBackClick = { currentScreen = AppScreen.MAIN_APP }
+                    onPasswordChanged = { navController.navigate("main_app") },
+                    onBackClick = { navController.navigate("main_app") }
                 )
             }
         }
-        AppScreen.MAIN_APP -> {
+        composable("main_app") {
             BaseLayout(
                 currentDestination = currentDestination,
                 onDestinationChanged = { currentDestination = it }
@@ -136,8 +110,8 @@ fun ListappApp() {
                     AppDestination.PANTRY -> PantryScreen(innerPadding)
                     AppDestination.PROFILE -> ProfileScreen(
                         padding = innerPadding,
-                        onChangePassword = { currentScreen = AppScreen.CHANGE_PASSWORD },
-                        onLogout = { currentScreen = AppScreen.LOGIN }
+                        onChangePassword = { navController.navigate("change_password") },
+                        onLogout = { navController.navigate("login") { popUpTo("main_app") { inclusive = true } } }
                     )
                 }
             }

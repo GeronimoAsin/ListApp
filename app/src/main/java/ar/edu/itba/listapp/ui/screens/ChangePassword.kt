@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.AndroidViewModel
@@ -22,6 +23,7 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.data.network.AuthRepository
 import ar.edu.itba.listapp.data.network.ChangePasswordResult
 import ar.edu.itba.listapp.data.network.SessionManager
+import ar.edu.itba.listapp.ui.theme.ListappTheme
 import kotlinx.coroutines.launch
 
 class ChangePasswordViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,7 +47,7 @@ class ChangePasswordViewModel(application: Application) : AndroidViewModel(appli
         uiState = uiState.copy(repeatPassword = value)
     }
 
-    fun changePassword() {
+    fun changePassword(onPasswordChanged: () -> Unit) {
         if (uiState.isLoading) return
 
         if (uiState.newPassword != uiState.repeatPassword) {
@@ -59,11 +61,8 @@ class ChangePasswordViewModel(application: Application) : AndroidViewModel(appli
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.changePassword(uiState.currentPassword, uiState.newPassword)) {
                 is ChangePasswordResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.change_password_success),
-                        isChanged = true
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onPasswordChanged()
                 }
                 is ChangePasswordResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -78,26 +77,17 @@ data class ChangePasswordUiState(
     val newPassword: String = "",
     val repeatPassword: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null,
-    val isChanged: Boolean = false
+    val errorMessage: String? = null
 )
 
 @Composable
 fun ChangePasswordScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onPasswordChanged: () -> Unit,
-    onBackClick: () -> Unit = {},
+    onBackClick: () -> Unit,
     viewModel: ChangePasswordViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-
-
-    LaunchedEffect(uiState.isChanged) {
-        if (uiState.isChanged) {
-            onPasswordChanged()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -194,7 +184,7 @@ fun ChangePasswordScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { viewModel.changePassword() },
+            onClick = { viewModel.changePassword(onPasswordChanged) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -225,16 +215,19 @@ fun ChangePasswordScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
 
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun ChangePasswordScreenPreview() {
+    ListappTheme {
+        ChangePasswordScreen(
+            padding = PaddingValues(),
+            onPasswordChanged = {},
+            onBackClick = {}
+        )
+    }
+}

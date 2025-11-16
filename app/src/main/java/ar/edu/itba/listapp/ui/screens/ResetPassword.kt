@@ -53,7 +53,7 @@ class ResetPasswordViewModel(application: Application) : AndroidViewModel(applic
         uiState = uiState.copy(repeatPassword = value)
     }
 
-    fun resetPassword() {
+    fun resetPassword(onPasswordReset: () -> Unit) {
         if (uiState.isLoading) return
 
         // Validación de contraseñas
@@ -68,11 +68,8 @@ class ResetPasswordViewModel(application: Application) : AndroidViewModel(applic
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = repository.resetPassword(uiState.code, uiState.newPassword)) {
                 is ResetPasswordResult.Success -> {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        successMessage = getApplication<Application>().getString(R.string.reset_password_success),
-                        isReset = true
-                    )
+                    uiState = uiState.copy(isLoading = false)
+                    onPasswordReset()
                 }
                 is ResetPasswordResult.Error -> {
                     uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -87,26 +84,17 @@ data class ResetPasswordUiState(
     val newPassword: String = "",
     val repeatPassword: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null,
-    val isReset: Boolean = false
+    val errorMessage: String? = null
 )
 
 @Composable
 fun ResetPasswordScreen(
-    padding: PaddingValues,
+    padding: PaddingValues = PaddingValues(),
     onPasswordReset: () -> Unit,
-    onBackClick: () -> Unit = {},
+    onBackClick: () -> Unit,
     viewModel: ResetPasswordViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-
-    // Navegar a login cuando el reset es exitoso
-    LaunchedEffect(uiState.isReset) {
-        if (uiState.isReset) {
-            onPasswordReset()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -201,7 +189,7 @@ fun ResetPasswordScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { viewModel.resetPassword() },
+            onClick = { viewModel.resetPassword(onPasswordReset) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -229,14 +217,6 @@ fun ResetPasswordScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        uiState.successMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = it,
-                color = Color(0xFF2E7D32),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -291,7 +271,8 @@ fun ResetPasswordScreenPreview() {
     ListappTheme {
         ResetPasswordScreen(
             padding = PaddingValues(),
-            onPasswordReset = {}
+            onPasswordReset = {},
+            onBackClick = {}
         )
     }
 }
