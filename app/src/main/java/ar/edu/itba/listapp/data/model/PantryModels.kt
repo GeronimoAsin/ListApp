@@ -32,6 +32,11 @@ data class PantriesResponse(
     val pagination: Pagination
 )
 
+@Serializable
+data class SharePantryRequest(
+    val email: String
+)
+
 // Pantry Item models
 @Serializable
 data class PantryItem(

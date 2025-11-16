@@ -35,6 +35,21 @@ sealed interface DeletePantryResult {
     data class Error(val message: String) : DeletePantryResult
 }
 
+sealed interface SharePantryResult {
+    data class Success(val user: Owner) : SharePantryResult
+    data class Error(val message: String) : SharePantryResult
+}
+
+sealed interface GetSharedUsersResult {
+    data class Success(val users: List<Owner>) : GetSharedUsersResult
+    data class Error(val message: String) : GetSharedUsersResult
+}
+
+sealed interface UnsharePantryResult {
+    data object Success : UnsharePantryResult
+    data class Error(val message: String) : UnsharePantryResult
+}
+
 // Result types for Pantry Items
 sealed interface GetPantryItemsResult {
     data class Success(val items: List<PantryItem>, val pagination: Pagination) : GetPantryItemsResult
@@ -198,6 +213,75 @@ class PantryRepository(
         }
     }
 
+    suspend fun sharePantry(id: Long, email: String): SharePantryResult = withContext(dispatcher) {
+        try {
+            val request = SharePantryRequest(email)
+            val user = service.sharePantry(id, request)
+            SharePantryResult.Success(user)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.pantry_error_bad_request)
+                401 -> context.getString(R.string.pantry_error_unauthorized)
+                404 -> context.getString(R.string.pantry_error_not_found)
+                409 -> context.getString(R.string.pantry_error_conflict)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
+            }
+            SharePantryResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            SharePantryResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            SharePantryResult.Error(message)
+        }
+    }
+
+    suspend fun getSharedUsers(id: Long): GetSharedUsersResult = withContext(dispatcher) {
+        try {
+            val users = service.getSharedUsers(id)
+            GetSharedUsersResult.Success(users)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.pantry_error_bad_request)
+                401 -> context.getString(R.string.pantry_error_unauthorized)
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
+            }
+            GetSharedUsersResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            GetSharedUsersResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            GetSharedUsersResult.Error(message)
+        }
+    }
+
+    suspend fun unsharePantry(id: Long, userId: Long): UnsharePantryResult = withContext(dispatcher) {
+        try {
+            service.unsharePantry(id, userId)
+            UnsharePantryResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.pantry_error_bad_request)
+                401 -> context.getString(R.string.pantry_error_unauthorized)
+                403 -> context.getString(R.string.pantry_error_forbidden)
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
+            }
+            UnsharePantryResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            UnsharePantryResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            UnsharePantryResult.Error(message)
+        }
+    }
+
     // Pantry Item operations
     suspend fun getPantryItems(
         pantryId: Long,
@@ -332,4 +416,3 @@ class PantryRepository(
         }
     }
 }
-

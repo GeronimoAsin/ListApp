@@ -30,6 +30,21 @@ interface PantryService {
     @DELETE("pantries/{id}")
     suspend fun deletePantry(@Path("id") id: Long)
 
+    @POST("pantries/{id}/share")
+    suspend fun sharePantry(
+        @Path("id") id: Long,
+        @Body body: SharePantryRequest
+    ): Owner
+
+    @GET("pantries/{id}/shared-users")
+    suspend fun getSharedUsers(@Path("id") id: Long): List<Owner>
+
+    @DELETE("pantries/{id}/share/{user_id}")
+    suspend fun unsharePantry(
+        @Path("id") id: Long,
+        @Path("user_id") userId: Long
+    )
+
     // Pantry Items endpoints
     @GET("pantries/{pantryId}/items")
     suspend fun getPantryItems(

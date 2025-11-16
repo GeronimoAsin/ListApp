@@ -45,7 +45,9 @@ fun CollapsibleList(
     onTitleChanged: (String) -> Unit,
     onDeleteList: () -> Unit,
     onEditItem: (Pair<String, String>) -> Unit,
-    onDeleteItem: (Pair<String, String>) -> Unit
+    onDeleteItem: (Pair<String, String>) -> Unit,
+    onShareList: (() -> Unit)? = null,
+    subtitle: String? = null
 ) {
     var expanded by remember { mutableStateOf(true) }
     var showEditTitle by remember { mutableStateOf(false) }
@@ -89,13 +91,22 @@ fun CollapsibleList(
                         shape = RoundedCornerShape(8.dp)
                     )
                 } else {
-                    Text(
-                        text = title,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F1F1F),
-                        modifier = Modifier.weight(1f)
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F1F)
+                        )
+                        subtitle?.let {
+                            Text(
+                                text = it,
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(10.dp))
@@ -107,6 +118,13 @@ fun CollapsibleList(
                         onClick = { showEditTitle = true },
                         backgroundColor = Color(0xFF9BD166)
                     )
+                    onShareList?.let { shareAction ->
+                        RoundIconButton(
+                            icon = Icons.Default.Share,
+                            onClick = shareAction,
+                            backgroundColor = Color(0xFF9BD166)
+                        )
+                    }
                     RoundIconButton(icon = Icons.Default.Delete, onClick = onDeleteList, backgroundColor = Color(0xFF9BD166))
                 }
             }
