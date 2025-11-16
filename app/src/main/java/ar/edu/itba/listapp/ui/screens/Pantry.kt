@@ -227,16 +227,6 @@ fun PantryScreen(padding: PaddingValues) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(id = R.string.pantry),
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 36.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             SearchBar(
                 value = searchText,
                 onValueChange = { searchText = it },
