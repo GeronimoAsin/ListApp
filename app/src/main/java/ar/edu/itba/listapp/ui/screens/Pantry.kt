@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -90,6 +91,7 @@ fun PantryScreen(padding: PaddingValues) {
     var showShareSheet by remember { mutableStateOf(false) }
     var selectedPantryForShare by remember { mutableStateOf<PantryUI?>(null) }
     var emailToShare by remember { mutableStateOf("") }
+    var shareOperationCompleted by remember { mutableStateOf(0) } // Counter to trigger recomposition
 
     // Function to load pantry items
     suspend fun loadPantryItems(pantryId: Long): List<PantryItemUI> {
@@ -253,13 +255,14 @@ fun PantryScreen(padding: PaddingValues) {
         SharePantryBottomSheet(
             pantry = selectedPantryForShare!!,
             emailToShare = emailToShare,
+            shareOperationCompleted = shareOperationCompleted,
             onEmailChange = { emailToShare = it },
             onDismiss = {
                 showShareSheet = false
                 selectedPantryForShare = null
                 emailToShare = ""
             },
-            onShare = { email ->
+            onShare = { email: String, onError: (String?) -> Unit ->
                 scope.launch {
                     when (val result = pantryRepository.sharePantry(selectedPantryForShare!!.id, email)) {
                         is SharePantryResult.Success -> {
@@ -269,14 +272,18 @@ fun PantryScreen(padding: PaddingValues) {
                             showShareSheet = false
                             selectedPantryForShare = null
                             emailToShare = ""
+                            onError(null) // No error
                         }
                         is SharePantryResult.Error -> {
-                            snackbarHostState.showSnackbar(result.message)
+                            // Pass error message to be shown below the input
+                            onError(result.message)
                         }
                     }
+                    // Increment counter to trigger recomposition and reset isSharing
+                    shareOperationCompleted++
                 }
             },
-            onRemoveUser = { userId ->
+            onRemoveUser = { userId: Long ->
                 scope.launch {
                     when (val result = pantryRepository.unsharePantry(selectedPantryForShare!!.id, userId)) {
                         is UnsharePantryResult.Success -> {
@@ -513,12 +520,35 @@ private fun RenderPantryItem(
 private fun SharePantryBottomSheet(
     pantry: PantryUI,
     emailToShare: String,
+    shareOperationCompleted: Int,
     onEmailChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onShare: (String) -> Unit,
+    onShare: (String, (String?) -> Unit) -> Unit,
     onRemoveUser: (Long) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isSharing by remember { mutableStateOf(false) }
+    var isRemovingUser by remember { mutableStateOf<Long?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Reset loading states when pantry data changes (after successful operations)
+    LaunchedEffect(pantry.sharedWith.size) {
+        isRemovingUser = null
+        isSharing = false
+        errorMessage = null
+    }
+
+    // Reset isSharing when share operation completes (success or error)
+    LaunchedEffect(shareOperationCompleted) {
+        if (shareOperationCompleted > 0) {
+            isSharing = false
+        }
+    }
+
+    // Clear error when email changes
+    LaunchedEffect(emailToShare) {
+        errorMessage = null
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -543,28 +573,53 @@ private fun SharePantryBottomSheet(
                 label = { Text("Email address") },
                 placeholder = { Text("Enter email to share with") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                isError = errorMessage != null
             )
+
+            // Error message
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Share button
             Button(
                 onClick = {
-                    if (emailToShare.isNotBlank()) {
-                        onShare(emailToShare)
+                    if (emailToShare.isNotBlank() && !isSharing) {
+                        isSharing = true
+                        errorMessage = null
+                        onShare(emailToShare) { error ->
+                            errorMessage = error
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = emailToShare.isNotBlank(),
+                enabled = emailToShare.isNotBlank() && !isSharing,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
                 )
             ) {
-                Icon(Icons.Default.Share, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Share")
+                if (isSharing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Sharing...")
+                } else {
+                    Icon(Icons.Default.Share, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Share")
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -609,13 +664,28 @@ private fun SharePantryBottomSheet(
                                     )
                                 }
                                 androidx.compose.material3.IconButton(
-                                    onClick = { onRemoveUser(user.id) }
+                                    onClick = {
+                                        if (isRemovingUser == null) {
+                                            isRemovingUser = user.id
+                                            onRemoveUser(user.id)
+                                            // Reset will happen after pantries reload
+                                        }
+                                    },
+                                    enabled = isRemovingUser == null
                                 ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Remove user",
-                                        tint = Color.Red
-                                    )
+                                    if (isRemovingUser == user.id) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            color = Color.Red,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Remove user",
+                                            tint = Color.Red
+                                        )
+                                    }
                                 }
                             }
                         }

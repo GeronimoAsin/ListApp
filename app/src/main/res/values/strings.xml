@@ -192,6 +192,7 @@
     <string name="pantry_error_forbidden">Forbidden. You don\'t have permission to perform this action.</string>
     <string name="pantry_error_conflict">Pantry already exists.</string>
     <string name="pantry_error_not_found">Pantry not found.</string>
+    <string name="pantry_error_user_not_found">User not found. Please check the email address.</string>
     <string name="pantry_error_server">Server error. Please try again later.</string>
     <string name="pantry_error_unexpected">Pantry error (%1$d).</string>
     <string name="pantry_error_connection">Connection error. Check your network.</string>
