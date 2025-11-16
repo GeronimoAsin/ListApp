@@ -4,17 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ar.edu.itba.listapp.data.network.NetworkModule
-import ar.edu.itba.listapp.ui.layouts.AppDestination
 import ar.edu.itba.listapp.ui.layouts.BaseLayout
 import ar.edu.itba.listapp.ui.screens.*
 import ar.edu.itba.listapp.ui.theme.LightGreen
@@ -39,7 +35,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ListappApp() {
     val navController = rememberNavController()
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestination.LISTS) }
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
@@ -49,14 +44,14 @@ fun ListappApp() {
                     onForgotPasswordClick = { navController.navigate("forgot_password") },
                     onVerificationClick = { navController.navigate("verification") },
                     onRegisterClick = { navController.navigate("register") },
-                    onLoginSuccess = { navController.navigate("main_app") }
+                    onLoginSuccess = { navController.navigate("main_app") { popUpTo("login") { inclusive = true } } }
                 )
             }
         }
         composable("register") {
             Scaffold(containerColor = LightGreen) { padding ->
                 RegisterScreen(
-                    padding,
+                    padding = padding,
                     onLoginClick = { navController.navigate("login") },
                     onRegisterSuccess = { navController.navigate("verification") }
                 )
@@ -100,20 +95,26 @@ fun ListappApp() {
             }
         }
         composable("main_app") {
-            BaseLayout(
-                currentDestination = currentDestination,
-                onDestinationChanged = { currentDestination = it }
-            ) { innerPadding ->
-                when (currentDestination) {
-                    AppDestination.LISTS -> ListsScreen(innerPadding)
-                    AppDestination.PRODUCTS -> ProductsScreen(innerPadding)
-                    AppDestination.PANTRY -> PantryScreen(innerPadding)
-                    AppDestination.PROFILE -> ProfileScreen(
-                        padding = innerPadding,
-                        onChangePassword = { navController.navigate("change_password") },
-                        onLogout = { navController.navigate("login") { popUpTo("main_app") { inclusive = true } } }
-                    )
-                }
+            MainApp(navController = navController)
+        }
+    }
+}
+
+@Composable
+fun MainApp(navController: androidx.navigation.NavController) {
+    val mainNavController = rememberNavController()
+
+    BaseLayout(navController = mainNavController) { innerPadding ->
+        NavHost(navController = mainNavController, startDestination = "lists") {
+            composable("lists") { ListsScreen(innerPadding) }
+            composable("products") { ProductsScreen(innerPadding) }
+            composable("pantry") { PantryScreen(innerPadding) }
+            composable("profile") {
+                ProfileScreen(
+                    padding = innerPadding,
+                    onChangePassword = { navController.navigate("change_password") },
+                    onLogout = { navController.navigate("login") { popUpTo("main_app") { inclusive = true } } }
+                )
             }
         }
     }

@@ -5,20 +5,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import ar.edu.itba.listapp.ui.layouts.AppDestination
 import ar.edu.itba.listapp.ui.theme.DeeperGreen
 
-
 @Composable
 fun AdaptiveNavBar(
-    currentDestination: AppDestination,
-    onDestinationChanged: (AppDestination) -> Unit,
+    navController: NavController,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             AppDestination.entries.forEach { destination ->
@@ -30,8 +34,13 @@ fun AdaptiveNavBar(
                         )
                     },
                     label = { Text(stringResource(destination.label)) },
-                    selected = destination == currentDestination,
-                    onClick = { onDestinationChanged(destination) }
+                    selected = currentRoute == destination.route,
+                    onClick = {
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
         },
