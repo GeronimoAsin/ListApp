@@ -18,7 +18,10 @@ data class Owner(
     val id: Long,
     val name: String,
     val surname: String,
-    val email: String
+    val email: String,
+    val metadata: Map<String, String> = emptyMap(),
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 @Serializable

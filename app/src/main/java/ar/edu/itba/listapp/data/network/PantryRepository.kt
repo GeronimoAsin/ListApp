@@ -10,14 +10,14 @@ import retrofit2.HttpException
 import java.io.IOException
 
 // Result types for Pantries
-sealed interface CreatePantryResult {
-    data class Success(val pantry: Pantry) : CreatePantryResult
-    data class Error(val message: String) : CreatePantryResult
-}
-
 sealed interface GetPantriesResult {
     data class Success(val pantries: List<Pantry>, val pagination: Pagination) : GetPantriesResult
     data class Error(val message: String) : GetPantriesResult
+}
+
+sealed interface CreatePantryResult {
+    data class Success(val pantry: Pantry) : CreatePantryResult
+    data class Error(val message: String) : CreatePantryResult
 }
 
 sealed interface GetPantryResult {
@@ -36,14 +36,19 @@ sealed interface DeletePantryResult {
 }
 
 // Result types for Pantry Items
+sealed interface GetPantryItemsResult {
+    data class Success(val items: List<PantryItem>, val pagination: Pagination) : GetPantryItemsResult
+    data class Error(val message: String) : GetPantryItemsResult
+}
+
 sealed interface AddPantryItemResult {
     data class Success(val item: PantryItem) : AddPantryItemResult
     data class Error(val message: String) : AddPantryItemResult
 }
 
-sealed interface GetPantryItemsResult {
-    data class Success(val items: List<PantryItem>, val pagination: Pagination) : GetPantryItemsResult
-    data class Error(val message: String) : GetPantryItemsResult
+sealed interface GetPantryItemResult {
+    data class Success(val item: PantryItem) : GetPantryItemResult
+    data class Error(val message: String) : GetPantryItemResult
 }
 
 sealed interface UpdatePantryItemResult {
@@ -64,11 +69,38 @@ class PantryRepository(
 ) {
 
     init {
+        // Provide token on each request
         NetworkModule.setAuthTokenProvider { sessionManager.loadAuthToken() }
     }
 
     // Pantry operations
-    suspend fun createPantry(name: String, metadata: Map<String, String>? = null): CreatePantryResult =
+    suspend fun getPantries(
+        owner: Boolean? = null,
+        page: Int = 1,
+        perPage: Int = 10,
+        sortBy: String? = null,
+        order: String? = null
+    ): GetPantriesResult = withContext(dispatcher) {
+        try {
+            val response = service.getPantries(owner, page, perPage, sortBy, order)
+            GetPantriesResult.Success(response.data, response.pagination)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                401 -> context.getString(R.string.pantry_error_unauthorized)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
+            }
+            GetPantriesResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            GetPantriesResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            GetPantriesResult.Error(message)
+        }
+    }
+
+    suspend fun createPantry(name: String, metadata: Map<String, String> = emptyMap()): CreatePantryResult =
         withContext(dispatcher) {
             try {
                 val request = CreatePantryRequest(name, metadata)
@@ -84,35 +116,13 @@ class PantryRepository(
                 }
                 CreatePantryResult.Error(message)
             } catch (ioException: IOException) {
-                CreatePantryResult.Error(context.getString(R.string.pantry_error_connection))
+                val message = context.getString(R.string.pantry_error_connection)
+                CreatePantryResult.Error(message)
             } catch (exception: Exception) {
-                CreatePantryResult.Error(context.getString(R.string.pantry_error_generic, exception.message ?: ""))
+                val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+                CreatePantryResult.Error(message)
             }
         }
-
-    suspend fun getPantries(
-        owner: Boolean? = null,
-        page: Int = 1,
-        perPage: Int = 10,
-        sortBy: String = "createdAt",
-        order: String = "ASC"
-    ): GetPantriesResult = withContext(dispatcher) {
-        try {
-            val response = service.getPantries(owner, page, perPage, sortBy, order)
-            GetPantriesResult.Success(response.data, response.pagination)
-        } catch (httpException: HttpException) {
-            val message = when (httpException.code()) {
-                401 -> context.getString(R.string.pantry_error_unauthorized)
-                500 -> context.getString(R.string.pantry_error_server)
-                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
-            }
-            GetPantriesResult.Error(message)
-        } catch (ioException: IOException) {
-            GetPantriesResult.Error(context.getString(R.string.pantry_error_connection))
-        } catch (exception: Exception) {
-            GetPantriesResult.Error(context.getString(R.string.pantry_error_generic, exception.message ?: ""))
-        }
-    }
 
     suspend fun getPantry(id: Long): GetPantryResult = withContext(dispatcher) {
         try {
@@ -127,16 +137,18 @@ class PantryRepository(
             }
             GetPantryResult.Error(message)
         } catch (ioException: IOException) {
-            GetPantryResult.Error(context.getString(R.string.pantry_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            GetPantryResult.Error(message)
         } catch (exception: Exception) {
-            GetPantryResult.Error(context.getString(R.string.pantry_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            GetPantryResult.Error(message)
         }
     }
 
     suspend fun updatePantry(
         id: Long,
         name: String,
-        metadata: Map<String, String>? = null
+        metadata: Map<String, String> = emptyMap()
     ): UpdatePantryResult = withContext(dispatcher) {
         try {
             val request = UpdatePantryRequest(name, metadata)
@@ -147,14 +159,17 @@ class PantryRepository(
                 400 -> context.getString(R.string.pantry_error_bad_request)
                 401 -> context.getString(R.string.pantry_error_unauthorized)
                 404 -> context.getString(R.string.pantry_error_not_found)
+                409 -> context.getString(R.string.pantry_error_conflict)
                 500 -> context.getString(R.string.pantry_error_server)
                 else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
             }
             UpdatePantryResult.Error(message)
         } catch (ioException: IOException) {
-            UpdatePantryResult.Error(context.getString(R.string.pantry_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            UpdatePantryResult.Error(message)
         } catch (exception: Exception) {
-            UpdatePantryResult.Error(context.getString(R.string.pantry_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            UpdatePantryResult.Error(message)
         }
     }
 
@@ -171,19 +186,48 @@ class PantryRepository(
             }
             DeletePantryResult.Error(message)
         } catch (ioException: IOException) {
-            DeletePantryResult.Error(context.getString(R.string.pantry_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            DeletePantryResult.Error(message)
         } catch (exception: Exception) {
-            DeletePantryResult.Error(context.getString(R.string.pantry_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            DeletePantryResult.Error(message)
         }
     }
 
     // Pantry Item operations
+    suspend fun getPantryItems(
+        pantryId: Long,
+        page: Int = 1,
+        perPage: Int = 10,
+        sortBy: String = "createdAt",
+        order: String = "ASC"
+    ): GetPantryItemsResult = withContext(dispatcher) {
+        try {
+            val response = service.getPantryItems(pantryId, page, perPage, sortBy, order)
+            GetPantryItemsResult.Success(response.data, response.pagination)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                401 -> context.getString(R.string.pantry_item_error_unauthorized)
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
+            }
+            GetPantryItemsResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            GetPantryItemsResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            GetPantryItemsResult.Error(message)
+        }
+    }
+
     suspend fun addPantryItem(
         pantryId: Long,
         productId: Long,
         quantity: Double,
         unit: String? = null,
-        metadata: Map<String, String>? = null
+        metadata: Map<String, String> = emptyMap()
     ): AddPantryItemResult = withContext(dispatcher) {
         try {
             val request = CreatePantryItemRequest(
@@ -198,43 +242,39 @@ class PantryRepository(
             val message = when (httpException.code()) {
                 400 -> context.getString(R.string.pantry_item_error_bad_request)
                 401 -> context.getString(R.string.pantry_item_error_unauthorized)
-                404 -> context.getString(R.string.pantry_item_error_not_found)
+                404 -> context.getString(R.string.pantry_error_not_found)
                 409 -> context.getString(R.string.pantry_item_error_conflict)
-                500 -> context.getString(R.string.pantry_item_error_server)
-                else -> context.getString(R.string.pantry_item_error_unexpected, httpException.code())
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
             }
             AddPantryItemResult.Error(message)
         } catch (ioException: IOException) {
-            AddPantryItemResult.Error(context.getString(R.string.pantry_item_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            AddPantryItemResult.Error(message)
         } catch (exception: Exception) {
-            AddPantryItemResult.Error(context.getString(R.string.pantry_item_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            AddPantryItemResult.Error(message)
         }
     }
 
-    suspend fun getPantryItems(
-        pantryId: Long,
-        page: Int = 1,
-        perPage: Int = 100,
-        sortBy: String? = null,
-        order: String = "ASC",
-        search: String? = null,
-        categoryId: Long? = null
-    ): GetPantryItemsResult = withContext(dispatcher) {
+    suspend fun getPantryItem(pantryId: Long, itemId: Long): GetPantryItemResult = withContext(dispatcher) {
         try {
-            val response = service.getPantryItems(pantryId, page, perPage, sortBy, order, search, categoryId)
-            GetPantryItemsResult.Success(response.data, response.pagination)
+            val item = service.getPantryItem(pantryId, itemId)
+            GetPantryItemResult.Success(item)
         } catch (httpException: HttpException) {
             val message = when (httpException.code()) {
                 401 -> context.getString(R.string.pantry_item_error_unauthorized)
-                404 -> context.getString(R.string.pantry_item_error_not_found)
-                500 -> context.getString(R.string.pantry_item_error_server)
-                else -> context.getString(R.string.pantry_item_error_unexpected, httpException.code())
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
             }
-            GetPantryItemsResult.Error(message)
+            GetPantryItemResult.Error(message)
         } catch (ioException: IOException) {
-            GetPantryItemsResult.Error(context.getString(R.string.pantry_item_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            GetPantryItemResult.Error(message)
         } catch (exception: Exception) {
-            GetPantryItemsResult.Error(context.getString(R.string.pantry_item_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            GetPantryItemResult.Error(message)
         }
     }
 
@@ -243,7 +283,7 @@ class PantryRepository(
         itemId: Long,
         quantity: Double,
         unit: String? = null,
-        metadata: Map<String, String>? = null
+        metadata: Map<String, String> = emptyMap()
     ): UpdatePantryItemResult = withContext(dispatcher) {
         try {
             val request = UpdatePantryItemRequest(quantity, unit, metadata)
@@ -253,36 +293,39 @@ class PantryRepository(
             val message = when (httpException.code()) {
                 400 -> context.getString(R.string.pantry_item_error_bad_request)
                 401 -> context.getString(R.string.pantry_item_error_unauthorized)
-                404 -> context.getString(R.string.pantry_item_error_not_found)
-                500 -> context.getString(R.string.pantry_item_error_server)
-                else -> context.getString(R.string.pantry_item_error_unexpected, httpException.code())
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
             }
             UpdatePantryItemResult.Error(message)
         } catch (ioException: IOException) {
-            UpdatePantryItemResult.Error(context.getString(R.string.pantry_item_error_connection))
+            val message = context.getString(R.string.pantry_error_connection)
+            UpdatePantryItemResult.Error(message)
         } catch (exception: Exception) {
-            UpdatePantryItemResult.Error(context.getString(R.string.pantry_item_error_generic, exception.message ?: ""))
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            UpdatePantryItemResult.Error(message)
         }
     }
 
-    suspend fun deletePantryItem(pantryId: Long, itemId: Long): DeletePantryItemResult =
-        withContext(dispatcher) {
-            try {
-                service.deletePantryItem(pantryId, itemId)
-                DeletePantryItemResult.Success
-            } catch (httpException: HttpException) {
-                val message = when (httpException.code()) {
-                    401 -> context.getString(R.string.pantry_item_error_unauthorized)
-                    404 -> context.getString(R.string.pantry_item_error_not_found)
-                    500 -> context.getString(R.string.pantry_item_error_server)
-                    else -> context.getString(R.string.pantry_item_error_unexpected, httpException.code())
-                }
-                DeletePantryItemResult.Error(message)
-            } catch (ioException: IOException) {
-                DeletePantryItemResult.Error(context.getString(R.string.pantry_item_error_connection))
-            } catch (exception: Exception) {
-                DeletePantryItemResult.Error(context.getString(R.string.pantry_item_error_generic, exception.message ?: ""))
+    suspend fun deletePantryItem(pantryId: Long, itemId: Long): DeletePantryItemResult = withContext(dispatcher) {
+        try {
+            service.deletePantryItem(pantryId, itemId)
+            DeletePantryItemResult.Success
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                401 -> context.getString(R.string.pantry_item_error_unauthorized)
+                404 -> context.getString(R.string.pantry_error_not_found)
+                500 -> context.getString(R.string.pantry_error_server)
+                else -> context.getString(R.string.pantry_error_unexpected, httpException.code())
             }
+            DeletePantryItemResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.pantry_error_connection)
+            DeletePantryItemResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.pantry_error_generic, exception.message ?: "")
+            DeletePantryItemResult.Error(message)
         }
+    }
 }
 
