@@ -69,9 +69,8 @@ fun AddToPantryDialog(
                         unfocusedBorderColor = Color.LightGray
                     )
                 )
-
+                    Spacer(modifier = Modifier.height(16.dp))
                 Spacer(modifier = Modifier.height(16.dp))
-
                 // Product selection
                 if (selectedProduct == null) {
                     Text(
@@ -135,7 +134,6 @@ fun AddToPantryDialog(
                         }
                     }
                 } else {
-                    // Show selected product and quantity form
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(

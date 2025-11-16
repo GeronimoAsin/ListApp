@@ -37,11 +37,10 @@ import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.data.model.Product
 import ar.edu.itba.listapp.data.network.*
 import ar.edu.itba.listapp.ui.composables.AddToPantryDialog
-import ar.edu.itba.listapp.ui.composables.CollapsibleList
-import ar.edu.itba.listapp.ui.composables.ModifyProductForm
-import ar.edu.itba.listapp.ui.composables.NoItemsMessage
+import ar.edu.itba.listapp.ui.composables.EditPantryItemDialog
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.composables.NewPantryForm
+import ar.edu.itba.listapp.ui.composables.CollapsibleList
 import kotlinx.coroutines.launch
 
 private data class PantryItemUI(
@@ -84,7 +83,7 @@ fun PantryScreen(padding: PaddingValues) {
 
     // Dialog states
     var showAddDialog by remember { mutableStateOf(false) }
-    var showModifyDialog by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showModifyDialog by remember { mutableStateOf<PantryItemUI?>(null) }
     var showCreatePantryDialog by remember { mutableStateOf(false) }
 
     // Share sheet state
@@ -238,14 +237,40 @@ fun PantryScreen(padding: PaddingValues) {
         )
     }
 
-    showModifyDialog?.let {
-        ModifyProductForm(
-            item = it,
+    showModifyDialog?.let { item ->
+        EditPantryItemDialog(
+            emoji = item.emoji,
+            name = item.name,
+            currentQuantity = item.quantity,
+            currentUnit = item.unit,
             onDismiss = { showModifyDialog = null },
-            onConfirm = { emoji, name ->
-                // For now, we'll keep the modify dialog as is
-                // In a full implementation, you'd update the pantry item
-                showModifyDialog = null
+            onConfirm = { quantity, unit ->
+                scope.launch {
+                    // Find which pantry this item belongs to
+                    val pantryId = myPantries.find { pantry ->
+                        pantry.items.any { it.id == item.id }
+                    }?.id ?: sharedPantries.find { pantry ->
+                        pantry.items.any { it.id == item.id }
+                    }?.id
+
+                    if (pantryId != null) {
+                        when (val result = pantryRepository.updatePantryItem(
+                            pantryId = pantryId,
+                            itemId = item.id,
+                            quantity = quantity,
+                            unit = unit
+                        )) {
+                            is UpdatePantryItemResult.Success -> {
+                                loadAllPantries()
+                                showModifyDialog = null
+                            }
+                            is UpdatePantryItemResult.Error -> {
+                                snackbarHostState.showSnackbar(result.message)
+                                showModifyDialog = null
+                            }
+                        }
+                    }
+                }
             }
         )
     }
@@ -264,31 +289,62 @@ fun PantryScreen(padding: PaddingValues) {
             },
             onShare = { email: String, onError: (String?) -> Unit ->
                 scope.launch {
-                    when (val result = pantryRepository.sharePantry(selectedPantryForShare!!.id, email)) {
+                    val pantryId = selectedPantryForShare!!.id
+                    when (val result = pantryRepository.sharePantry(pantryId, email)) {
                         is SharePantryResult.Success -> {
                             snackbarHostState.showSnackbar("Pantry shared with ${result.user.email}")
-                            // Reload all pantries to update the sharedWith list
-                            loadAllPantries()
-                            showShareSheet = false
-                            selectedPantryForShare = null
+                            when (val pantryResult = pantryRepository.getPantries(owner = true, page = 1, perPage = 100)) {
+                                is GetPantriesResult.Success -> {
+                                    val updatedPantry = pantryResult.pantries.find { it.id == pantryId }
+                                    if (updatedPantry != null) {
+                                        val items = loadPantryItems(updatedPantry.id)
+                                        selectedPantryForShare = PantryUI(
+                                            id = updatedPantry.id,
+                                            name = updatedPantry.name,
+                                            items = items,
+                                            owner = updatedPantry.owner,
+                                            sharedWith = updatedPantry.sharedWith
+                                        )
+                                    }
+                                }
+                                is GetPantriesResult.Error -> {
+                                    snackbarHostState.showSnackbar(pantryResult.message)
+                                }
+                            }
                             emailToShare = ""
+                            loadAllPantries()
                             onError(null) // No error
                         }
                         is SharePantryResult.Error -> {
-                            // Pass error message to be shown below the input
                             onError(result.message)
                         }
                     }
-                    // Increment counter to trigger recomposition and reset isSharing
                     shareOperationCompleted++
                 }
             },
             onRemoveUser = { userId: Long ->
                 scope.launch {
-                    when (val result = pantryRepository.unsharePantry(selectedPantryForShare!!.id, userId)) {
+                    val pantryId = selectedPantryForShare!!.id
+                    when (val result = pantryRepository.unsharePantry(pantryId, userId)) {
                         is UnsharePantryResult.Success -> {
-                            snackbarHostState.showSnackbar("User access revoked successfully")
-                            // Reload all pantries to update the sharedWith list
+                            when (val pantryResult = pantryRepository.getPantries(owner = true, page = 1, perPage = 100)) {
+                                is GetPantriesResult.Success -> {
+                                    val updatedPantry = pantryResult.pantries.find { it.id == pantryId }
+                                    if (updatedPantry != null) {
+                                        val items = loadPantryItems(updatedPantry.id)
+                                        selectedPantryForShare = PantryUI(
+                                            id = updatedPantry.id,
+                                            name = updatedPantry.name,
+                                            items = items,
+                                            owner = updatedPantry.owner,
+                                            sharedWith = updatedPantry.sharedWith
+                                        )
+                                    }
+                                }
+                                is GetPantriesResult.Error -> {
+                                    snackbarHostState.showSnackbar(pantryResult.message)
+                                }
+                            }
                             loadAllPantries()
                         }
                         is UnsharePantryResult.Error -> {
@@ -471,6 +527,22 @@ fun PantryScreen(padding: PaddingValues) {
 }
 
 @Composable
+private fun NoItemsMessage() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.no_items),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
 private fun RenderPantryItem(
     pantry: PantryUI,
     searchText: String,
@@ -479,23 +551,33 @@ private fun RenderPantryItem(
     onAddItem: () -> Unit,
     onTitleChanged: (String) -> Unit,
     onDeleteList: () -> Unit,
-    onEditItem: (Pair<String, String>) -> Unit,
+    onEditItem: (PantryItemUI) -> Unit,
     onDeleteItem: (Pair<String, String>) -> Unit,
     onShareList: (() -> Unit)?
 ) {
     val filteredItems = pantry.items
         .filter { it.name.contains(searchText, ignoreCase = true) }
-        .map { it.emoji to it.name }
+
+    // Create a map to find PantryItemUI by Pair<emoji, name>
+    val itemsMap = filteredItems.associateBy { it.emoji to it.name }
+
+    // Convert to Pairs for CollapsibleList
+    val itemPairs = filteredItems.map { it.emoji to it.name }
 
     if (canEdit) {
         // Full functionality for owned pantries
         CollapsibleList(
             title = pantry.name,
-            items = filteredItems,
+            items = itemPairs,
             onAddItem = onAddItem,
             onTitleChanged = onTitleChanged,
             onDeleteList = onDeleteList,
-            onEditItem = onEditItem,
+            onEditItem = { pair ->
+                // Find the full PantryItemUI from the pair
+                itemsMap[pair]?.let { fullItem ->
+                    onEditItem(fullItem)
+                }
+            },
             onDeleteItem = onDeleteItem,
             onShareList = onShareList
         )
@@ -503,11 +585,16 @@ private fun RenderPantryItem(
         // Limited functionality for shared pantries (no edit title, no delete list, no share)
         CollapsibleList(
             title = pantry.name,
-            items = filteredItems,
+            items = itemPairs,
             onAddItem = onAddItem,
             onTitleChanged = { }, // Disabled
             onDeleteList = { }, // Disabled
-            onEditItem = onEditItem,
+            onEditItem = { pair ->
+                // Find the full PantryItemUI from the pair
+                itemsMap[pair]?.let { fullItem ->
+                    onEditItem(fullItem)
+                }
+            },
             onDeleteItem = onDeleteItem,
             onShareList = null, // Disabled
             subtitle = "Shared by ${pantry.owner?.name ?: "Unknown"}"

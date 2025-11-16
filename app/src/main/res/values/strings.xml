@@ -60,8 +60,9 @@
     <string name="search_product">Search product...</string>
     <string name="no_products_found">No products found</string>
     <string name="quantity">Quantity</string>
-    <string name="unit_optional">Unit (optional)</string>
-    <string name="unit_placeholder">e.g., kg, L, units</string>
+    <string name="quantity_error">Please enter a valid quantity</string>
+    <string name="unit_optional">Unit</string>
+    <string name="unit_placeholder">kg, L, units</string>
     <string name="change">Change</string>
     <string name="product_name">Product name</string>
     <string name="product_name_placeholder">Product name</string>
