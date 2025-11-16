@@ -2,6 +2,10 @@ package ar.edu.itba.listapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
@@ -41,6 +46,8 @@ import ar.edu.itba.listapp.ui.composables.EditPantryItemDialog
 import ar.edu.itba.listapp.ui.composables.SearchBar
 import ar.edu.itba.listapp.ui.composables.NewPantryForm
 import ar.edu.itba.listapp.ui.composables.CollapsibleList
+import ar.edu.itba.listapp.ui.composables.NoItemsMessage
+import ar.edu.itba.listapp.ui.utils.isTablet
 import kotlinx.coroutines.launch
 
 private data class PantryItemUI(
@@ -393,26 +400,25 @@ fun PantryScreen(padding: PaddingValues) {
             }
 
             if (!isLoading && myPantries.isEmpty() && sharedPantries.isEmpty()) {
-                // Only show "no items" when there are no pantries at all
                 NoItemsMessage()
             } else if (!isLoading) {
-                // Show all pantries, one below the other
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Section: My Pantries
-                    if (myPantries.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "My Pantries",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-
-                        myPantries.forEach { pantry ->
-                            item(key = "my_${pantry.id}") {
+                if (isTablet()) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (myPantries.isNotEmpty()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Text(
+                                    text = "My Pantries",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(myPantries, key = { "my_${it.id}" }) { pantry ->
                                 RenderPantryItem(
                                     pantry = pantry,
                                     searchText = searchText,
@@ -425,41 +431,33 @@ fun PantryScreen(padding: PaddingValues) {
                                     onTitleChanged = { newTitle ->
                                         scope.launch {
                                             when (val result = pantryRepository.updatePantry(pantry.id, newTitle)) {
-                                                is UpdatePantryResult.Success -> {
-                                                    loadAllPantries()
-                                                }
-                                                is UpdatePantryResult.Error -> {
-                                                    snackbarHostState.showSnackbar(result.message)
-                                                }
+                                                is UpdatePantryResult.Success -> loadAllPantries()
+                                                is UpdatePantryResult.Error -> snackbarHostState.showSnackbar(
+                                                    result.message
+                                                )
                                             }
                                         }
                                     },
                                     onDeleteList = {
                                         scope.launch {
                                             when (val result = pantryRepository.deletePantry(pantry.id)) {
-                                                is DeletePantryResult.Success -> {
-                                                    loadAllPantries()
-                                                }
-                                                is DeletePantryResult.Error -> {
-                                                    snackbarHostState.showSnackbar(result.message)
-                                                }
+                                                is DeletePantryResult.Success -> loadAllPantries()
+                                                is DeletePantryResult.Error -> snackbarHostState.showSnackbar(
+                                                    result.message
+                                                )
                                             }
                                         }
                                     },
-                                    onEditItem = { item ->
-                                        showModifyDialog = item
-                                    },
+                                    onEditItem = { item -> showModifyDialog = item },
                                     onDeleteItem = { item ->
                                         val itemToDelete = pantry.items.find { "${it.emoji} ${it.name}" == "${item.first} ${item.second}" }
                                         itemToDelete?.let { pantryItem ->
                                             scope.launch {
                                                 when (val result = pantryRepository.deletePantryItem(pantry.id, pantryItem.id)) {
-                                                    is DeletePantryItemResult.Success -> {
-                                                        loadAllPantries()
-                                                    }
-                                                    is DeletePantryItemResult.Error -> {
-                                                        snackbarHostState.showSnackbar(result.message)
-                                                    }
+                                                    is DeletePantryItemResult.Success -> loadAllPantries()
+                                                    is DeletePantryItemResult.Error -> snackbarHostState.showSnackbar(
+                                                        result.message
+                                                    )
                                                 }
                                             }
                                         }
@@ -471,21 +469,17 @@ fun PantryScreen(padding: PaddingValues) {
                                 )
                             }
                         }
-                    }
 
-                    // Section: Shared with Me
-                    if (sharedPantries.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Shared with Me",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                            )
-                        }
-
-                        sharedPantries.forEach { pantry ->
-                            item(key = "shared_${pantry.id}") {
+                        if (sharedPantries.isNotEmpty()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Text(
+                                    text = "Shared with Me",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                )
+                            }
+                            items(sharedPantries, key = { "shared_${it.id}" }) { pantry ->
                                 RenderPantryItem(
                                     pantry = pantry,
                                     searchText = searchText,
@@ -497,20 +491,122 @@ fun PantryScreen(padding: PaddingValues) {
                                     },
                                     onTitleChanged = { }, // Not editable
                                     onDeleteList = { }, // Not deletable
-                                    onEditItem = { item ->
-                                        showModifyDialog = item
-                                    },
+                                    onEditItem = { item -> showModifyDialog = item },
                                     onDeleteItem = { item ->
                                         val itemToDelete = pantry.items.find { "${it.emoji} ${it.name}" == "${item.first} ${item.second}" }
                                         itemToDelete?.let { pantryItem ->
                                             scope.launch {
                                                 when (val result = pantryRepository.deletePantryItem(pantry.id, pantryItem.id)) {
-                                                    is DeletePantryItemResult.Success -> {
-                                                        loadAllPantries()
-                                                    }
-                                                    is DeletePantryItemResult.Error -> {
-                                                        snackbarHostState.showSnackbar(result.message)
-                                                    }
+                                                    is DeletePantryItemResult.Success -> loadAllPantries()
+                                                    is DeletePantryItemResult.Error -> snackbarHostState.showSnackbar(
+                                                        result.message
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onShareList = null // Can't share
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (myPantries.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "My Pantries",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(myPantries, key = { "my_${it.id}" }) { pantry ->
+                                RenderPantryItem(
+                                    pantry = pantry,
+                                    searchText = searchText,
+                                    canEdit = true, // Owner can edit
+                                    canShare = true, // Owner can share
+                                    onAddItem = {
+                                        selectedPantryIdForAdd = pantry.id
+                                        showAddDialog = true
+                                    },
+                                    onTitleChanged = { newTitle ->
+                                        scope.launch {
+                                            when (val result = pantryRepository.updatePantry(pantry.id, newTitle)) {
+                                                is UpdatePantryResult.Success -> loadAllPantries()
+                                                is UpdatePantryResult.Error -> snackbarHostState.showSnackbar(
+                                                    result.message
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onDeleteList = {
+                                        scope.launch {
+                                            when (val result = pantryRepository.deletePantry(pantry.id)) {
+                                                is DeletePantryResult.Success -> loadAllPantries()
+                                                is DeletePantryResult.Error -> snackbarHostState.showSnackbar(
+                                                    result.message
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onEditItem = { item -> showModifyDialog = item },
+                                    onDeleteItem = { item ->
+                                        val itemToDelete = pantry.items.find { "${it.emoji} ${it.name}" == "${item.first} ${item.second}" }
+                                        itemToDelete?.let { pantryItem ->
+                                            scope.launch {
+                                                when (val result = pantryRepository.deletePantryItem(pantry.id, pantryItem.id)) {
+                                                    is DeletePantryItemResult.Success -> loadAllPantries()
+                                                    is DeletePantryItemResult.Error -> snackbarHostState.showSnackbar(
+                                                        result.message
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onShareList = {
+                                        selectedPantryForShare = pantry
+                                        showShareSheet = true
+                                    }
+                                )
+                            }
+                        }
+
+                        if (sharedPantries.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Shared with Me",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                )
+                            }
+                            items(sharedPantries, key = { "shared_${it.id}" }) { pantry ->
+                                RenderPantryItem(
+                                    pantry = pantry,
+                                    searchText = searchText,
+                                    canEdit = false, // Not owner, can't edit title or delete
+                                    canShare = false, // Not owner, can't share
+                                    onAddItem = {
+                                        selectedPantryIdForAdd = pantry.id
+                                        showAddDialog = true
+                                    },
+                                    onTitleChanged = { }, // Not editable
+                                    onDeleteList = { }, // Not deletable
+                                    onEditItem = { item -> showModifyDialog = item },
+                                    onDeleteItem = { item ->
+                                        val itemToDelete = pantry.items.find { "${it.emoji} ${it.name}" == "${item.first} ${item.second}" }
+                                        itemToDelete?.let { pantryItem ->
+                                            scope.launch {
+                                                when (val result = pantryRepository.deletePantryItem(pantry.id, pantryItem.id)) {
+                                                    is DeletePantryItemResult.Success -> loadAllPantries()
+                                                    is DeletePantryItemResult.Error -> snackbarHostState.showSnackbar(
+                                                        result.message
+                                                    )
                                                 }
                                             }
                                         }
@@ -523,22 +619,6 @@ fun PantryScreen(padding: PaddingValues) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun NoItemsMessage() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(id = R.string.no_items),
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
     }
 }
 
