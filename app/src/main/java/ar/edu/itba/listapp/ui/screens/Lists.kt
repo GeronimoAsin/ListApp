@@ -346,15 +346,6 @@ fun ListsScreen(padding: PaddingValues) {
                     ) {
                         // My Lists section
                         if (myLists.isNotEmpty()) {
-                            item(span = { GridItemSpan(2) }) {
-                                Text(
-                                    text = stringResource(id = R.string.my_lists),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
                             items(myLists) { list ->
                                 RenderListItem(
                                     list = list,
@@ -472,15 +463,6 @@ fun ListsScreen(padding: PaddingValues) {
                     ) {
                         // My Lists section
                         if (myLists.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = stringResource(id = R.string.my_lists),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
                             items(myLists) { list ->
                                 RenderListItem(
                                     list = list,

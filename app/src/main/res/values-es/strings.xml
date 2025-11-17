@@ -199,7 +199,6 @@
     <string name="new_shopping_list">Nueva Lista</string>
     <string name="list_name_placeholder">Nombre de la lista</string>
     <string name="search_lists">Buscar listas</string>
-    <string name="my_lists">Mis Listas</string>
     <string name="shared_lists">Listas Compartidas</string>
     <string name="add_to_list">Agregar a Lista</string>
     <string name="edit_item">Editar Ítem</string>

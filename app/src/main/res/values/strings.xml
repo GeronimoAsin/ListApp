@@ -213,7 +213,6 @@
     <string name="new_shopping_list">New List</string>
     <string name="list_name_placeholder">List name</string>
     <string name="search_lists">Search lists</string>
-    <string name="my_lists">My Lists</string>
     <string name="shared_lists">Shared Lists</string>
     <string name="add_to_list">Add to List</string>
     <string name="edit_item">Edit Item</string>
