@@ -330,8 +330,37 @@ class ListRepository(
                 unit = unit,
                 metadata = metadata
             )
-            val item = service.addShoppingListItem(listId, request)
-            AddShoppingListItemResult.Success(item)
+            val response = service.addShoppingListItem(listId, request)
+            if (response.isSuccessful) {
+                // re-fetch del item mas reciente
+                val latest = service.getShoppingListItems(
+                    listId = listId,
+                    page = 1,
+                    perPage = 1,
+                    sortBy = "createdAt",
+                    order = "DESC"
+                ).data.firstOrNull()
+                if (latest != null) {
+                    AddShoppingListItemResult.Success(latest)
+                } else {
+                    AddShoppingListItemResult.Error(
+                        context.getString(R.string.shopping_list_item_error_unexpected, 204)
+                    )
+                }
+            } else {
+                val message = when (response.code()) {
+                    400 -> context.getString(R.string.shopping_list_item_error_bad_request)
+                    401 -> context.getString(R.string.shopping_list_item_error_unauthorized)
+                    404 -> context.getString(R.string.shopping_list_item_error_not_found)
+                    409 -> context.getString(R.string.shopping_list_item_error_conflict)
+                    500 -> context.getString(R.string.shopping_list_item_error_server)
+                    else -> context.getString(
+                        R.string.shopping_list_item_error_unexpected,
+                        response.code()
+                    )
+                }
+                AddShoppingListItemResult.Error(message)
+            }
         } catch (httpException: HttpException) {
             val message = when (httpException.code()) {
                 400 -> context.getString(R.string.shopping_list_item_error_bad_request)
@@ -339,14 +368,20 @@ class ListRepository(
                 404 -> context.getString(R.string.shopping_list_item_error_not_found)
                 409 -> context.getString(R.string.shopping_list_item_error_conflict)
                 500 -> context.getString(R.string.shopping_list_item_error_server)
-                else -> context.getString(R.string.shopping_list_item_error_unexpected, httpException.code())
+                else -> context.getString(
+                    R.string.shopping_list_item_error_unexpected,
+                    httpException.code()
+                )
             }
             AddShoppingListItemResult.Error(message)
         } catch (ioException: IOException) {
             val message = context.getString(R.string.shopping_list_item_error_connection)
             AddShoppingListItemResult.Error(message)
         } catch (exception: Exception) {
-            val message = context.getString(R.string.shopping_list_item_error_generic, exception.message ?: "")
+            val message = context.getString(
+                R.string.shopping_list_item_error_generic,
+                exception.message ?: ""
+            )
             AddShoppingListItemResult.Error(message)
         }
     }

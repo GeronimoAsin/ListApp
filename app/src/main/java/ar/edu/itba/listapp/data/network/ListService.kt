@@ -1,6 +1,7 @@
 package ar.edu.itba.listapp.data.network
 
 import ar.edu.itba.listapp.data.model.*
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ListService {
@@ -59,7 +60,7 @@ interface ListService {
     suspend fun addShoppingListItem(
         @Path("listId") listId: Long,
         @Body body: CreateShoppingListItemRequest
-    ): ShoppingListItem
+    ): Response<Unit>
 
     @GET("shopping-lists/{listId}/items/{itemId}")
     suspend fun getShoppingListItem(
