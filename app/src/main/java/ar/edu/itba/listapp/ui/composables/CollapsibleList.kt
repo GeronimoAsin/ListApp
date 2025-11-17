@@ -29,11 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ar.edu.itba.listapp.ui.theme.CreteRoundFontFamily
 import ar.edu.itba.listapp.ui.theme.ListappTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,6 +84,12 @@ fun CollapsibleList(
                             showEditTitle = false
                             focusManager.clearFocus()
                         }),
+                        textStyle = TextStyle(
+                            fontFamily = CreteRoundFontFamily,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F1F)
+                        ),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -94,6 +102,7 @@ fun CollapsibleList(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = title,
+                            fontFamily = CreteRoundFontFamily,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F1F1F)
