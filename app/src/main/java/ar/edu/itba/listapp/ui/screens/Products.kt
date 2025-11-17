@@ -216,7 +216,10 @@ fun ProductsScreen(scaffoldPadding: PaddingValues) {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF78B945)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
