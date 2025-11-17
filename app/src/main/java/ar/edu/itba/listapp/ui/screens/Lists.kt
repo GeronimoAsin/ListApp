@@ -203,15 +203,15 @@ fun ListsScreen(padding: PaddingValues) {
                         unit = unit
                     )) {
                         is AddShoppingListItemResult.Success -> {
-                            showAddDialog = false
-                            selectedListIdForAdd = null
+                            // Reload all lists to show the new item
                             loadAllLists()
-                            snackbarHostState.showSnackbar(context.getString(R.string.item_added))
                         }
                         is AddShoppingListItemResult.Error -> {
                             snackbarHostState.showSnackbar(result.message)
                         }
                     }
+                    showAddDialog = false
+                    selectedListIdForAdd = null
                 }
             }
         )
