@@ -209,4 +209,48 @@
     <string name="pantry_item_error_connection">Connection error. Check your network.</string>
     <string name="pantry_item_error_generic">Unexpected error: %1$s</string>
 
+    <!-- Shopping Lists -->
+    <string name="new_shopping_list">New List</string>
+    <string name="list_name_placeholder">List name</string>
+    <string name="search_lists">Search lists</string>
+    <string name="my_lists">My Lists</string>
+    <string name="shared_lists">Shared Lists</string>
+    <string name="add_to_list">Add to List</string>
+    <string name="edit_item">Edit Item</string>
+    <string name="list_created">List created successfully</string>
+    <string name="list_deleted">List deleted successfully</string>
+    <string name="item_added">Item added successfully</string>
+    <string name="item_updated">Item updated successfully</string>
+    <string name="item_deleted">Item deleted successfully</string>
+    <string name="list_shared">List shared successfully</string>
+    <string name="user_removed">User removed successfully</string>
+    <string name="share_list">Share List</string>
+    <string name="email">Email</string>
+    <string name="enter_email">Enter email address</string>
+    <string name="share">Share</string>
+    <string name="shared_with">Shared with</string>
+    <string name="not_shared_yet">Not shared with anyone yet</string>
+    <string name="remove">Remove</string>
+    <string name="create">Create</string>
+
+    <!-- Shopping List error messages -->
+    <string name="shopping_list_error_bad_request">Invalid shopping list data. Please check all fields.</string>
+    <string name="shopping_list_error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="shopping_list_error_conflict">Shopping list with this name already exists.</string>
+    <string name="shopping_list_error_not_found">Shopping list not found.</string>
+    <string name="shopping_list_error_server">Server error. Please try again later.</string>
+    <string name="shopping_list_error_unexpected">Shopping list error (%1$d).</string>
+    <string name="shopping_list_error_connection">Connection error. Check your network.</string>
+    <string name="shopping_list_error_generic">Unexpected error: %1$s</string>
+
+    <!-- Shopping List Item error messages -->
+    <string name="shopping_list_item_error_bad_request">Invalid item data. Please check all fields.</string>
+    <string name="shopping_list_item_error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="shopping_list_item_error_conflict">Item already exists in this list.</string>
+    <string name="shopping_list_item_error_not_found">Item not found in list.</string>
+    <string name="shopping_list_item_error_server">Server error. Please try again later.</string>
+    <string name="shopping_list_item_error_unexpected">Item error (%1$d).</string>
+    <string name="shopping_list_item_error_connection">Connection error. Check your network.</string>
+    <string name="shopping_list_item_error_generic">Unexpected error: %1$s</string>
+
 </resources>

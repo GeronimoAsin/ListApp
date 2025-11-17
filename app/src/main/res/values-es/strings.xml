@@ -175,6 +175,68 @@
     <string name="product_error_connection">Error de conexión. Verificá tu red.</string>
     <string name="product_error_generic">Error inesperado: %1$s</string>
 
+    <!-- Pantry error messages -->
+    <string name="pantry_error_bad_request">Datos de despensa inválidos. Verificá los campos.</string>
+    <string name="pantry_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="pantry_error_conflict">La despensa ya existe.</string>
+    <string name="pantry_error_not_found">Despensa no encontrada.</string>
+    <string name="pantry_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="pantry_error_unexpected">Error de despensa (%1$d).</string>
+    <string name="pantry_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="pantry_error_generic">Error inesperado: %1$s</string>
 
+    <!-- Pantry Item error messages -->
+    <string name="pantry_item_error_bad_request">Datos de ítem inválidos. Verificá los campos.</string>
+    <string name="pantry_item_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="pantry_item_error_conflict">El ítem ya existe en la despensa.</string>
+    <string name="pantry_item_error_not_found">Ítem de despensa no encontrado.</string>
+    <string name="pantry_item_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="pantry_item_error_unexpected">Error de ítem de despensa (%1$d).</string>
+    <string name="pantry_item_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="pantry_item_error_generic">Error inesperado: %1$s</string>
+
+    <!-- Shopping Lists -->
+    <string name="new_shopping_list">Nueva Lista</string>
+    <string name="list_name_placeholder">Nombre de la lista</string>
+    <string name="search_lists">Buscar listas</string>
+    <string name="my_lists">Mis Listas</string>
+    <string name="shared_lists">Listas Compartidas</string>
+    <string name="add_to_list">Agregar a Lista</string>
+    <string name="edit_item">Editar Ítem</string>
+    <string name="list_created">Lista creada exitosamente</string>
+    <string name="list_deleted">Lista eliminada exitosamente</string>
+    <string name="item_added">Ítem agregado exitosamente</string>
+    <string name="item_updated">Ítem actualizado exitosamente</string>
+    <string name="item_deleted">Ítem eliminado exitosamente</string>
+    <string name="list_shared">Lista compartida exitosamente</string>
+    <string name="user_removed">Usuario eliminado exitosamente</string>
+    <string name="share_list">Compartir Lista</string>
+    <string name="email">Email</string>
+    <string name="enter_email">Ingresá el email</string>
+    <string name="share">Compartir</string>
+    <string name="shared_with">Compartido con</string>
+    <string name="not_shared_yet">Aún no compartida con nadie</string>
+    <string name="remove">Eliminar</string>
+    <string name="create">Crear</string>
+
+    <!-- Shopping List error messages -->
+    <string name="shopping_list_error_bad_request">Datos de lista inválidos. Verificá los campos.</string>
+    <string name="shopping_list_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="shopping_list_error_conflict">Ya existe una lista con este nombre.</string>
+    <string name="shopping_list_error_not_found">Lista no encontrada.</string>
+    <string name="shopping_list_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="shopping_list_error_unexpected">Error de lista (%1$d).</string>
+    <string name="shopping_list_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="shopping_list_error_generic">Error inesperado: %1$s</string>
+
+    <!-- Shopping List Item error messages -->
+    <string name="shopping_list_item_error_bad_request">Datos de ítem inválidos. Verificá los campos.</string>
+    <string name="shopping_list_item_error_unauthorized">No autorizado. Por favor, iniciá sesión nuevamente.</string>
+    <string name="shopping_list_item_error_conflict">El ítem ya existe en esta lista.</string>
+    <string name="shopping_list_item_error_not_found">Ítem no encontrado en la lista.</string>
+    <string name="shopping_list_item_error_server">Error del servidor. Intentá más tarde.</string>
+    <string name="shopping_list_item_error_unexpected">Error de ítem (%1$d).</string>
+    <string name="shopping_list_item_error_connection">Error de conexión. Verificá tu red.</string>
+    <string name="shopping_list_item_error_generic">Error inesperado: %1$s</string>
 
 </resources>
