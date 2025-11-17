@@ -86,7 +86,7 @@ fun CollapsibleList(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color(0xFFA3C86D),
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color(0xFFA3C86D)
                         ),
                         shape = RoundedCornerShape(8.dp)
                     )
