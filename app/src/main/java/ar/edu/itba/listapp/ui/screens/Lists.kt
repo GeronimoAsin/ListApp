@@ -298,18 +298,6 @@ fun ListsScreen(padding: PaddingValues) {
 
     Scaffold(
         modifier = Modifier.padding(padding),
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showCreateListDialog = true },
-                containerColor = Color(0xFF78B945),
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.new_shopping_list))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(id = R.string.new_shopping_list))
-            }
-        },
-        floatingActionButtonPosition = FabPosition.Center,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
@@ -318,6 +306,32 @@ fun ListsScreen(padding: PaddingValues) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
+            // New List Button
+            Button(
+                onClick = { showCreateListDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF78B945),
+                    contentColor = Color.White
+                )
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.new_shopping_list),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             SearchBar(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -328,7 +342,10 @@ fun ListsScreen(padding: PaddingValues) {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF78B945)
+                )
             }
 
             if (!isLoading && myLists.isEmpty() && sharedLists.isEmpty()) {
@@ -613,8 +630,15 @@ private fun RenderListItem(
     // Create a map to find ListItemUI by Pair<emoji, name>
     val itemsMap = filteredItems.associateBy { it.emoji to it.name }
 
-    // Convert to Pairs for CollapsibleList
-    val itemPairs = filteredItems.map { it.emoji to it.name }
+    // Convert to Triples (emoji, name with quantity/unit) for CollapsibleList
+    val itemPairs = filteredItems.map { 
+        val quantityUnit = if (it.unit != null) {
+            "${it.quantity} ${it.unit}"
+        } else {
+            "${it.quantity}"
+        }
+        it.emoji to "${it.name} - $quantityUnit"
+    }
 
     if (canEdit) {
         // Full functionality for owned lists
@@ -625,9 +649,21 @@ private fun RenderListItem(
             onTitleChanged = onTitleChanged,
             onDeleteList = onDeleteList,
             onEditItem = { pair ->
-                itemsMap[pair]?.let { onEditItem(it) }
+                // Extract emoji and original name (without quantity)
+                val originalItem = filteredItems.find { it.emoji == pair.first }
+                originalItem?.let { 
+                    val originalPair = it.emoji to it.name
+                    itemsMap[originalPair]?.let { item -> onEditItem(item) }
+                }
             },
-            onDeleteItem = onDeleteItem,
+            onDeleteItem = { pair ->
+                // Extract emoji and original name (without quantity)
+                val originalItem = filteredItems.find { it.emoji == pair.first }
+                originalItem?.let { 
+                    val originalPair = it.emoji to it.name
+                    onDeleteItem(originalPair)
+                }
+            },
             onShareList = onShareList
         )
     } else {
@@ -639,9 +675,21 @@ private fun RenderListItem(
             onTitleChanged = { },
             onDeleteList = { },
             onEditItem = { pair ->
-                itemsMap[pair]?.let { onEditItem(it) }
+                // Extract emoji and original name (without quantity)
+                val originalItem = filteredItems.find { it.emoji == pair.first }
+                originalItem?.let { 
+                    val originalPair = it.emoji to it.name
+                    itemsMap[originalPair]?.let { item -> onEditItem(item) }
+                }
             },
-            onDeleteItem = onDeleteItem,
+            onDeleteItem = { pair ->
+                // Extract emoji and original name (without quantity)
+                val originalItem = filteredItems.find { it.emoji == pair.first }
+                originalItem?.let { 
+                    val originalPair = it.emoji to it.name
+                    onDeleteItem(originalPair)
+                }
+            },
             onShareList = null,
             subtitle = "Shared by ${list.owner?.name ?: "Unknown"}"
         )
