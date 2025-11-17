@@ -298,6 +298,17 @@ fun ListsScreen(padding: PaddingValues) {
 
     Scaffold(
         modifier = Modifier.padding(padding),
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showCreateListDialog = true },
+                icon = { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_shopping_list)) },
+                text = { Text(stringResource(R.string.new_shopping_list), fontWeight = FontWeight.Bold) },
+                containerColor = Color.White,
+                contentColor = Color.Black,
+                shape = RoundedCornerShape(50)
+            )
+        },
+        floatingActionButtonPosition = FabPosition.Center,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
@@ -306,32 +317,6 @@ fun ListsScreen(padding: PaddingValues) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            // New List Button
-            Button(
-                onClick = { showCreateListDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF78B945),
-                    contentColor = Color.White
-                )
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                Text(
-                    text = stringResource(id = R.string.new_shopping_list),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             SearchBar(
                 value = searchText,
                 onValueChange = { searchText = it },
