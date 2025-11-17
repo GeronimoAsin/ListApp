@@ -36,7 +36,7 @@ sealed interface DeleteShoppingListResult {
 }
 
 sealed interface ShareShoppingListResult {
-    data class Success(val user: Owner) : ShareShoppingListResult
+    data object Success : ShareShoppingListResult
     data class Error(val message: String) : ShareShoppingListResult
 }
 
@@ -225,13 +225,26 @@ class ListRepository(
     suspend fun shareShoppingList(listId: Long, email: String): ShareShoppingListResult = withContext(dispatcher) {
         try {
             val request = ShareShoppingListRequest(email)
-            val user = service.shareShoppingList(listId, request)
-            ShareShoppingListResult.Success(user)
+            val response = service.shareShoppingList(listId, request)
+            if (response.isSuccessful) {
+                ShareShoppingListResult.Success
+            } else {
+                val message = when (response.code()) {
+                    400 -> context.getString(R.string.shopping_list_error_bad_request)
+                    401 -> context.getString(R.string.shopping_list_error_unauthorized)
+                    404 -> context.getString(R.string.shopping_list_error_not_found)
+                    409 -> context.getString(R.string.shopping_list_error_conflict)
+                    500 -> context.getString(R.string.shopping_list_error_server)
+                    else -> context.getString(R.string.shopping_list_error_unexpected, response.code())
+                }
+                ShareShoppingListResult.Error(message)
+            }
         } catch (httpException: HttpException) {
             val message = when (httpException.code()) {
                 400 -> context.getString(R.string.shopping_list_error_bad_request)
                 401 -> context.getString(R.string.shopping_list_error_unauthorized)
                 404 -> context.getString(R.string.shopping_list_error_not_found)
+                409 -> context.getString(R.string.shopping_list_error_conflict)
                 500 -> context.getString(R.string.shopping_list_error_server)
                 else -> context.getString(R.string.shopping_list_error_unexpected, httpException.code())
             }

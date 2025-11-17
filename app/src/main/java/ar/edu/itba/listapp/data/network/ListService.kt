@@ -35,7 +35,7 @@ interface ListService {
     suspend fun shareShoppingList(
         @Path("id") id: Long,
         @Body body: ShareShoppingListRequest
-    ): Owner
+    ): Response<Unit>
 
     @GET("shopping-lists/{id}/shared-users")
     suspend fun getSharedUsers(@Path("id") id: Long): List<Owner>
