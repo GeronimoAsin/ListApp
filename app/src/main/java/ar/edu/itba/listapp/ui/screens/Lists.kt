@@ -1,5 +1,11 @@
 package ar.edu.itba.listapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -7,16 +13,28 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
@@ -32,7 +50,8 @@ private data class ListItemUI(
     val emoji: String,
     val name: String,
     val quantity: Double,
-    val unit: String?
+    val unit: String?,
+    val purchased: Boolean = false
 )
 
 private data class ShoppingListUI(
@@ -86,7 +105,8 @@ fun ListsScreen(padding: PaddingValues) {
                         emoji = item.product.metadata["emoji"] ?: "📦",
                         name = item.product.name,
                         quantity = item.quantity,
-                        unit = item.unit
+                        unit = item.unit,
+                        purchased = item.purchased
                     )
                 }
             }
@@ -403,6 +423,18 @@ fun ListsScreen(padding: PaddingValues) {
                                     onShareList = {
                                         selectedListForShare = list
                                         showShareSheet = true
+                                    },
+                                    onTogglePurchased = { item, purchased ->
+                                        scope.launch {
+                                            when (val result = listRepository.toggleItemPurchased(list.id, item.id, purchased)) {
+                                                is ToggleItemPurchasedResult.Success -> {
+                                                    loadAllLists()
+                                                }
+                                                is ToggleItemPurchasedResult.Error -> {
+                                                    snackbarHostState.showSnackbar(result.message)
+                                                }
+                                            }
+                                        }
                                     }
                                 )
                             }
@@ -450,7 +482,19 @@ fun ListsScreen(padding: PaddingValues) {
                                             }
                                         }
                                     },
-                                    onShareList = null
+                                    onShareList = null,
+                                    onTogglePurchased = { item, purchased ->
+                                        scope.launch {
+                                            when (val result = listRepository.toggleItemPurchased(list.id, item.id, purchased)) {
+                                                is ToggleItemPurchasedResult.Success -> {
+                                                    loadAllLists()
+                                                }
+                                                is ToggleItemPurchasedResult.Error -> {
+                                                    snackbarHostState.showSnackbar(result.message)
+                                                }
+                                            }
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -520,6 +564,18 @@ fun ListsScreen(padding: PaddingValues) {
                                     onShareList = {
                                         selectedListForShare = list
                                         showShareSheet = true
+                                    },
+                                    onTogglePurchased = { item, purchased ->
+                                        scope.launch {
+                                            when (val result = listRepository.toggleItemPurchased(list.id, item.id, purchased)) {
+                                                is ToggleItemPurchasedResult.Success -> {
+                                                    loadAllLists()
+                                                }
+                                                is ToggleItemPurchasedResult.Error -> {
+                                                    snackbarHostState.showSnackbar(result.message)
+                                                }
+                                            }
+                                        }
                                     }
                                 )
                             }
@@ -567,7 +623,19 @@ fun ListsScreen(padding: PaddingValues) {
                                             }
                                         }
                                     },
-                                    onShareList = null
+                                    onShareList = null,
+                                    onTogglePurchased = { item, purchased ->
+                                        scope.launch {
+                                            when (val result = listRepository.toggleItemPurchased(list.id, item.id, purchased)) {
+                                                is ToggleItemPurchasedResult.Success -> {
+                                                    loadAllLists()
+                                                }
+                                                is ToggleItemPurchasedResult.Error -> {
+                                                    snackbarHostState.showSnackbar(result.message)
+                                                }
+                                            }
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -589,7 +657,8 @@ private fun RenderListItem(
     onDeleteList: () -> Unit,
     onEditItem: (ListItemUI) -> Unit,
     onDeleteItem: (Pair<String, String>) -> Unit,
-    onShareList: (() -> Unit)?
+    onShareList: (() -> Unit)?,
+    onTogglePurchased: (ListItemUI, Boolean) -> Unit = { _, _ -> }
 ) {
     val filteredItems = list.items
         .filter { it.name.contains(searchText, ignoreCase = true) }
@@ -597,66 +666,64 @@ private fun RenderListItem(
     // Create a map to find ListItemUI by Pair<emoji, name>
     val itemsMap = filteredItems.associateBy { it.emoji to it.name }
 
-    // Convert to Triples (emoji, name with quantity/unit) for CollapsibleList
-    val itemPairs = filteredItems.map { 
+    // Convert to items with purchased status for CollapsibleList
+    val itemsWithStatus = filteredItems.map {
         val quantityUnit = if (it.unit != null) {
             "${it.quantity} ${it.unit}"
         } else {
             "${it.quantity}"
         }
-        it.emoji to "${it.name} - $quantityUnit"
+        Triple(it.emoji to "${it.name} - $quantityUnit", it.purchased, it)
     }
 
     if (canEdit) {
         // Full functionality for owned lists
-        CollapsibleList(
+        CollapsibleListWithCheckbox(
             title = list.name,
-            items = itemPairs,
+            items = itemsWithStatus,
             onAddItem = onAddItem,
             onTitleChanged = onTitleChanged,
             onDeleteList = onDeleteList,
             onEditItem = { pair ->
-                // Extract emoji and original name (without quantity)
                 val originalItem = filteredItems.find { it.emoji == pair.first }
-                originalItem?.let { 
+                originalItem?.let {
                     val originalPair = it.emoji to it.name
                     itemsMap[originalPair]?.let { item -> onEditItem(item) }
                 }
             },
             onDeleteItem = { pair ->
-                // Extract emoji and original name (without quantity)
                 val originalItem = filteredItems.find { it.emoji == pair.first }
-                originalItem?.let { 
+                originalItem?.let {
                     val originalPair = it.emoji to it.name
                     onDeleteItem(originalPair)
                 }
             },
+            onTogglePurchased = { item, purchased -> onTogglePurchased(item, purchased) },
             onShareList = onShareList
         )
     } else {
         // Limited functionality for shared lists
-        CollapsibleList(
+        CollapsibleListWithCheckbox(
             title = list.name,
-            items = itemPairs,
+            items = itemsWithStatus,
             onAddItem = onAddItem,
             onTitleChanged = { },
             onDeleteList = { },
             onEditItem = { pair ->
-                // Extract emoji and original name (without quantity)
                 val originalItem = filteredItems.find { it.emoji == pair.first }
-                originalItem?.let { 
+                originalItem?.let {
                     val originalPair = it.emoji to it.name
                     itemsMap[originalPair]?.let { item -> onEditItem(item) }
                 }
             },
             onDeleteItem = { pair ->
-                // Extract emoji and original name (without quantity)
                 val originalItem = filteredItems.find { it.emoji == pair.first }
-                originalItem?.let { 
+                originalItem?.let {
                     val originalPair = it.emoji to it.name
                     onDeleteItem(originalPair)
                 }
             },
+            onTogglePurchased = { item, purchased -> onTogglePurchased(item, purchased) },
             onShareList = null,
             subtitle = "Shared by ${list.owner?.name ?: "Unknown"}"
         )
@@ -802,7 +869,7 @@ private fun ShareListBottomSheet(
                                 .padding(12.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -844,6 +911,203 @@ private fun ShareListBottomSheet(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun CollapsibleListWithCheckbox(
+    title: String,
+    items: List<Triple<Pair<String, String>, Boolean, ListItemUI>>, // Pair(label), purchased, full item
+    onAddItem: () -> Unit,
+    onTitleChanged: (String) -> Unit,
+    onDeleteList: () -> Unit,
+    onEditItem: (Pair<String, String>) -> Unit,
+    onDeleteItem: (Pair<String, String>) -> Unit,
+    onTogglePurchased: (ListItemUI, Boolean) -> Unit,
+    onShareList: (() -> Unit)? = null,
+    subtitle: String? = null
+) {
+    // Reuse CollapsibleList layout header, but render our own rows with checkbox
+    var expanded by remember { mutableStateOf(true) }
+    var showEditTitle by remember { mutableStateOf(false) }
+    var editableTitle by remember(title) { mutableStateOf(title) }
+    val focusManager = LocalFocusManager.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp, horizontal = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFC8DCC5))
+    ) {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFCFE8B6), RoundedCornerShape(16.dp))
+                    .clickable { expanded = !expanded }
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                if (showEditTitle) {
+                    OutlinedTextField(
+                        value = editableTitle,
+                        onValueChange = { editableTitle = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            onTitleChanged(editableTitle)
+                            showEditTitle = false
+                            focusManager.clearFocus()
+                        }),
+                        textStyle = TextStyle(
+                            fontFamily = ar.edu.itba.listapp.ui.theme.CreteRoundFontFamily,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F1F)
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color(0xFFA3C86D),
+                            unfocusedIndicatorColor = Color(0xFFA3C86D)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                } else {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F1F)
+                        )
+                        subtitle?.let {
+                            Text(
+                                text = it,
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    IconButton(
+                        onClick = onAddItem,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF9BD166), CircleShape)
+                    ) { Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF1F1F1F)) }
+                    IconButton(
+                        onClick = { showEditTitle = true },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF9BD166), CircleShape)
+                    ) { Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF1F1F1F)) }
+                    onShareList?.let { shareAction ->
+                        IconButton(
+                            onClick = shareAction,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color(0xFF9BD166), CircleShape)
+                        ) { Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF1F1F1F)) }
+                    }
+                    IconButton(
+                        onClick = onDeleteList,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF9BD166), CircleShape)
+                    ) { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFF1F1F1F)) }
+                }
+            }
+            AnimatedVisibility(visible = expanded && items.isNotEmpty()) {
+                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+                    items.forEach { triple ->
+                        val pair = triple.first
+                        val purchased = triple.second
+                        val full = triple.third
+                        key(pair) {
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = {
+                                    if (it == SwipeToDismissBoxValue.EndToStart) {
+                                        onDeleteItem(pair)
+                                        true
+                                    } else false
+                                }
+                            )
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = {
+                                    val color by animateColorAsState(
+                                        when (dismissState.targetValue) {
+                                            SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.8f)
+                                            else -> Color.Transparent
+                                        }
+                                    )
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(color, shape = RoundedCornerShape(14.dp))
+                                            .padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                                    }
+                                }
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFBF2EE)),
+                                    border = BorderStroke(2.dp, Color(0xFFC8DCC5))
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    ) {
+                                        Checkbox(
+                                            checked = purchased,
+                                            onCheckedChange = { onTogglePurchased(full, it) },
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = Color(0xFF78B945),
+                                                uncheckedColor = Color.Gray
+                                            )
+                                        )
+                                        Text(text = pair.first, fontSize = 24.sp, modifier = Modifier.padding(end = 16.dp))
+                                        Text(
+                                            text = pair.second,
+                                            modifier = Modifier.weight(1f),
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (purchased) Color.Gray else Color.Black,
+                                            style = if (purchased) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle()
+                                        )
+                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            IconButton(
+                                                onClick = { onEditItem(pair) },
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color.White)
+                                                    .border(BorderStroke(2.dp, Color(0xFFC8DCC5)), CircleShape)
+                                            ) { Icon(Icons.Default.Edit, contentDescription = null, tint = Color.Black) }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

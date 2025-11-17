@@ -79,4 +79,11 @@ interface ListService {
         @Path("listId") listId: Long,
         @Path("itemId") itemId: Long
     )
+
+    @PATCH("shopping-lists/{listId}/items/{itemId}")
+    suspend fun toggleItemPurchased(
+        @Path("listId") listId: Long,
+        @Path("itemId") itemId: Long,
+        @Body body: TogglePurchasedRequest
+    ): ShoppingListItem
 }

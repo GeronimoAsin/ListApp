@@ -76,6 +76,11 @@ sealed interface DeleteShoppingListItemResult {
     data class Error(val message: String) : DeleteShoppingListItemResult
 }
 
+sealed interface ToggleItemPurchasedResult {
+    data class Success(val item: ShoppingListItem) : ToggleItemPurchasedResult
+    data class Error(val message: String) : ToggleItemPurchasedResult
+}
+
 class ListRepository(
     private val context: Context,
     private val service: ListService = NetworkModule.listService,
@@ -415,6 +420,33 @@ class ListRepository(
         } catch (exception: Exception) {
             val message = context.getString(R.string.shopping_list_item_error_generic, exception.message ?: "")
             DeleteShoppingListItemResult.Error(message)
+        }
+    }
+
+    suspend fun toggleItemPurchased(
+        listId: Long,
+        itemId: Long,
+        purchased: Boolean
+    ): ToggleItemPurchasedResult = withContext(dispatcher) {
+        try {
+            val request = TogglePurchasedRequest(purchased)
+            val item = service.toggleItemPurchased(listId, itemId, request)
+            ToggleItemPurchasedResult.Success(item)
+        } catch (httpException: HttpException) {
+            val message = when (httpException.code()) {
+                400 -> context.getString(R.string.shopping_list_item_error_bad_request)
+                401 -> context.getString(R.string.shopping_list_item_error_unauthorized)
+                404 -> context.getString(R.string.shopping_list_item_error_not_found)
+                500 -> context.getString(R.string.shopping_list_item_error_server)
+                else -> context.getString(R.string.shopping_list_item_error_unexpected, httpException.code())
+            }
+            ToggleItemPurchasedResult.Error(message)
+        } catch (ioException: IOException) {
+            val message = context.getString(R.string.shopping_list_item_error_connection)
+            ToggleItemPurchasedResult.Error(message)
+        } catch (exception: Exception) {
+            val message = context.getString(R.string.shopping_list_item_error_generic, exception.message ?: "")
+            ToggleItemPurchasedResult.Error(message)
         }
     }
 }

@@ -46,6 +46,8 @@ data class ShoppingListItem(
     val quantity: Double,
     val unit: String? = null,
     val metadata: Map<String, String>? = null,
+    val purchased: Boolean = false,
+    val lastPurchasedAt: String? = null,
     val product: Product,
     val createdAt: String,
     val updatedAt: String
@@ -64,6 +66,11 @@ data class UpdateShoppingListItemRequest(
     val quantity: Double,
     val unit: String? = null,
     val metadata: Map<String, String>? = null
+)
+
+@Serializable
+data class TogglePurchasedRequest(
+    val purchased: Boolean
 )
 
 @Serializable
