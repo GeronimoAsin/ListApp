@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ar.edu.itba.listapp.R
 import ar.edu.itba.listapp.data.model.Product
 import ar.edu.itba.listapp.data.network.*
@@ -108,7 +107,7 @@ fun PantryScreen(padding: PaddingValues) {
                         id = item.id,
                         productId = item.product.id,
                         emoji = item.product.metadata["emoji"] ?: "📦",
-                        name = "${item.product.name}${item.unit?.let { " ($it)" } ?: ""} - ${item.quantity}",
+                        name = "${item.product.name}${item.unit?.let { " ($it)" } ?: ""} - ${formatQuantity(item.quantity)}",
                         quantity = item.quantity,
                         unit = item.unit
                     )
@@ -426,7 +425,6 @@ fun PantryScreen(padding: PaddingValues) {
                                     pantry = pantry,
                                     searchText = searchText,
                                     canEdit = true, // Owner can edit
-                                    canShare = true, // Owner can share
                                     onAddItem = {
                                         selectedPantryIdForAdd = pantry.id
                                         showAddDialog = true
@@ -487,7 +485,6 @@ fun PantryScreen(padding: PaddingValues) {
                                     pantry = pantry,
                                     searchText = searchText,
                                     canEdit = false, // Not owner, can't edit title or delete
-                                    canShare = false, // Not owner, can't share
                                     onAddItem = {
                                         selectedPantryIdForAdd = pantry.id
                                         showAddDialog = true
@@ -532,7 +529,6 @@ fun PantryScreen(padding: PaddingValues) {
                                     pantry = pantry,
                                     searchText = searchText,
                                     canEdit = true, // Owner can edit
-                                    canShare = true, // Owner can share
                                     onAddItem = {
                                         selectedPantryIdForAdd = pantry.id
                                         showAddDialog = true
@@ -593,7 +589,6 @@ fun PantryScreen(padding: PaddingValues) {
                                     pantry = pantry,
                                     searchText = searchText,
                                     canEdit = false, // Not owner, can't edit title or delete
-                                    canShare = false, // Not owner, can't share
                                     onAddItem = {
                                         selectedPantryIdForAdd = pantry.id
                                         showAddDialog = true
@@ -630,7 +625,6 @@ private fun RenderPantryItem(
     pantry: PantryUI,
     searchText: String,
     canEdit: Boolean,
-    canShare: Boolean,
     onAddItem: () -> Unit,
     onTitleChanged: (String) -> Unit,
     onDeleteList: () -> Unit,
@@ -874,3 +868,5 @@ private fun SharePantryBottomSheet(
         }
     }
 }
+
+private fun formatQuantity(q: Double): String = if (q % 1.0 == 0.0) q.toInt().toString() else q.toString()

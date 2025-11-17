@@ -103,7 +103,7 @@ fun ListsScreen(padding: PaddingValues) {
                         id = item.id,
                         productId = item.product.id,
                         emoji = item.product.metadata["emoji"] ?: "📦",
-                        name = item.product.name,
+                        name = "${item.product.name}${item.unit?.let { " ($it)" } ?: ""} - ${formatQuantity(item.quantity)}",
                         quantity = item.quantity,
                         unit = item.unit,
                         purchased = item.purchased
@@ -371,7 +371,6 @@ fun ListsScreen(padding: PaddingValues) {
                                     list = list,
                                     searchText = searchText,
                                     canEdit = true,
-                                    canShare = true,
                                     onAddItem = {
                                         selectedListIdForAdd = list.id
                                         showAddDialog = true
@@ -456,7 +455,6 @@ fun ListsScreen(padding: PaddingValues) {
                                     list = list,
                                     searchText = searchText,
                                     canEdit = false,
-                                    canShare = false,
                                     onAddItem = {
                                         selectedListIdForAdd = list.id
                                         showAddDialog = true
@@ -512,7 +510,6 @@ fun ListsScreen(padding: PaddingValues) {
                                     list = list,
                                     searchText = searchText,
                                     canEdit = true,
-                                    canShare = true,
                                     onAddItem = {
                                         selectedListIdForAdd = list.id
                                         showAddDialog = true
@@ -597,7 +594,6 @@ fun ListsScreen(padding: PaddingValues) {
                                     list = list,
                                     searchText = searchText,
                                     canEdit = false,
-                                    canShare = false,
                                     onAddItem = {
                                         selectedListIdForAdd = list.id
                                         showAddDialog = true
@@ -651,7 +647,6 @@ private fun RenderListItem(
     list: ShoppingListUI,
     searchText: String,
     canEdit: Boolean,
-    canShare: Boolean,
     onAddItem: () -> Unit,
     onTitleChanged: (String) -> Unit,
     onDeleteList: () -> Unit,
@@ -668,12 +663,8 @@ private fun RenderListItem(
 
     // Convert to items with purchased status for CollapsibleList
     val itemsWithStatus = filteredItems.map {
-        val quantityUnit = if (it.unit != null) {
-            "${it.quantity} ${it.unit}"
-        } else {
-            "${it.quantity}"
-        }
-        Triple(it.emoji to "${it.name} - $quantityUnit", it.purchased, it)
+        // name already contains formatted unit and quantity, avoid appending again
+        Triple(it.emoji to it.name, it.purchased, it)
     }
 
     if (canEdit) {
@@ -980,6 +971,7 @@ private fun CollapsibleListWithCheckbox(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = title,
+                            fontFamily = ar.edu.itba.listapp.ui.theme.CreteRoundFontFamily,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F1F1F)
@@ -987,6 +979,7 @@ private fun CollapsibleListWithCheckbox(
                         subtitle?.let {
                             Text(
                                 text = it,
+                                fontFamily = ar.edu.itba.listapp.ui.theme.CreteRoundFontFamily,
                                 fontSize = 14.sp,
                                 color = Color.Gray,
                                 modifier = Modifier.padding(top = 4.dp)
@@ -1082,10 +1075,15 @@ private fun CollapsibleListWithCheckbox(
                                                 uncheckedColor = Color.Gray
                                             )
                                         )
-                                        Text(text = pair.first, fontSize = 24.sp, modifier = Modifier.padding(end = 16.dp))
+                                        Text(
+                                            text = pair.first,
+                                            fontSize = 24.sp,
+                                            modifier = Modifier.padding(end = 16.dp)
+                                        )
                                         Text(
                                             text = pair.second,
                                             modifier = Modifier.weight(1f),
+                                            fontFamily = ar.edu.itba.listapp.ui.theme.CreteRoundFontFamily,
                                             fontSize = 20.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (purchased) Color.Gray else Color.Black,
@@ -1111,3 +1109,5 @@ private fun CollapsibleListWithCheckbox(
         }
     }
 }
+
+private fun formatQuantity(q: Double): String = if (q % 1.0 == 0.0) q.toInt().toString() else q.toString()
