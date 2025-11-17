@@ -412,14 +412,6 @@ fun PantryScreen(padding: PaddingValues) {
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         if (myPantries.isNotEmpty()) {
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                Text(
-                                    text = "My Pantries",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
                             items(myPantries, key = { "my_${it.id}" }) { pantry ->
                                 RenderPantryItem(
                                     pantry = pantry,
@@ -516,14 +508,6 @@ fun PantryScreen(padding: PaddingValues) {
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         if (myPantries.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "My Pantries",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
                             items(myPantries, key = { "my_${it.id}" }) { pantry ->
                                 RenderPantryItem(
                                     pantry = pantry,
