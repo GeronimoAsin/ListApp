@@ -286,8 +286,28 @@ fun ListsScreen(padding: PaddingValues) {
             },
             onShare = { email: String, onError: (String?) -> Unit ->
                 scope.launch {
-                    when (val result = listRepository.shareShoppingList(selectedListForShare!!.id, email)) {
+                    val listId = selectedListForShare!!.id
+                    when (val result = listRepository.shareShoppingList(listId, email)) {
                         is ShareShoppingListResult.Success -> {
+                            // refresco de selectedListForShare
+                            when (val listsResult = listRepository.getShoppingLists(owner = true, page = 1, perPage = 100)) {
+                                is GetShoppingListsResult.Success -> {
+                                    val updated = listsResult.lists.find { it.id == listId }
+                                    if (updated != null) {
+                                        val items = loadListItems(updated.id)
+                                        selectedListForShare = ShoppingListUI(
+                                            id = updated.id,
+                                            name = updated.name,
+                                            items = items,
+                                            owner = updated.owner,
+                                            sharedWith = updated.sharedWith
+                                        )
+                                    }
+                                }
+                                is GetShoppingListsResult.Error -> {
+                                    snackbarHostState.showSnackbar(listsResult.message)
+                                }
+                            }
                             shareOperationCompleted++
                             emailToShare = ""
                             loadAllLists()
@@ -302,10 +322,31 @@ fun ListsScreen(padding: PaddingValues) {
             },
             onRemoveUser = { userId: Long ->
                 scope.launch {
-                    when (val result = listRepository.unshareShoppingList(selectedListForShare!!.id, userId)) {
+                    val listId = selectedListForShare!!.id
+                    when (val result = listRepository.unshareShoppingList(listId, userId)) {
                         is UnshareShoppingListResult.Success -> {
+                            // Refresh selectedListForShare with latest sharedWith (mirror Pantry behavior)
+                            when (val listsResult = listRepository.getShoppingLists(owner = true, page = 1, perPage = 100)) {
+                                is GetShoppingListsResult.Success -> {
+                                    val updated = listsResult.lists.find { it.id == listId }
+                                    if (updated != null) {
+                                        val items = loadListItems(updated.id)
+                                        selectedListForShare = ShoppingListUI(
+                                            id = updated.id,
+                                            name = updated.name,
+                                            items = items,
+                                            owner = updated.owner,
+                                            sharedWith = updated.sharedWith
+                                        )
+                                    }
+                                }
+                                is GetShoppingListsResult.Error -> {
+                                    snackbarHostState.showSnackbar(listsResult.message)
+                                }
+                            }
                             loadAllLists()
                             snackbarHostState.showSnackbar(context.getString(R.string.user_removed))
+                            shareOperationCompleted++
                         }
                         is UnshareShoppingListResult.Error -> {
                             snackbarHostState.showSnackbar(result.message)
