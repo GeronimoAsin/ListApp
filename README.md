@@ -10,7 +10,7 @@ The interface is built entirely with **Jetpack Compose** and is **Material Desig
 
 - Gerónimo Asín — [gasin@itba.edu.ar](mailto:gasin@itba.edu.ar) 
 - Lautaro Ezequiel Domínguez — [ladominguez@itba.edu.ar](mailto:ladominguez@itba.edu.ar)
-- Mati Sánchez — [msancheznovelli@itba.edu.ar](mailto:msancheznovelli@itba.edu.ar) 
+- Matias Sánchez Novelli — [msancheznovelli@itba.edu.ar](mailto:msancheznovelli@itba.edu.ar) 
 - Felipe Matich — [fmatich@itba.edu.ar](mailto:fmatich@itba.edu.ar)
 
 ---
